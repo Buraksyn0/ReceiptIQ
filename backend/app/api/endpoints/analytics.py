@@ -525,7 +525,7 @@ async def get_financial_score(
     else:
         budget_score = 15  # Bütçe tanımlı değil → nötr
         budget_pct = 0
-        budget_desc = "Henüz bütçe tanımlamadın. Bütçe oluşturarak skoru artırabilirsin."
+        budget_desc = "İlk bütçeni oluştur ve harcamalarını kontrol altına al."
 
     # ── FAKTÖR 2: Tasarruf Hedefi (max 25) ────────────────────────────────
     if active_goal:
@@ -556,7 +556,7 @@ async def get_financial_score(
         savings_pct = round(progress_pct)
     else:
         savings_score = 12  # Hedef yok → nötr
-        savings_desc = "Aktif bir tasarruf hedefiniz yok. Hedef belirleyerek skoru artırabilirsin."
+        savings_desc = "Bir hedef belirle, birikimini takip etmeye başla."
         savings_pct = 0
 
     # ── FAKTÖR 3: Harcama Düzenliliği (max 20) ────────────────────────────
@@ -580,7 +580,7 @@ async def get_financial_score(
         consistency_pct = round((1 - anomaly_rate) * 100)
     else:
         consistency_score = 10  # Veri yok → nötr
-        consistency_desc = "Henüz yeterli veri yok. Fiş ekledikçe bu skor oluşacak."
+        consistency_desc = "Fiş eklemeye başla, harcama alışkanlıkların ortaya çıksın."
         consistency_pct = 100
 
     # ── FAKTÖR 4: Gelir/Gider Dengesi (max 15) ────────────────────────────
@@ -605,7 +605,7 @@ async def get_financial_score(
         balance_pct = 100
     else:
         balance_score = 7  # Veri yok → nötr
-        balance_desc = "Gelir/gider verisi henüz yeterli değil."
+        balance_desc = "Gelir ve giderlerini kaydet, dengenin nerede olduğunu gör."
         balance_pct = 50
 
     # ── FAKTÖR 5: Takip Aktifliği (max 10) ────────────────────────────────
@@ -623,7 +623,7 @@ async def get_financial_score(
         activity_desc = f"Son 30 günde sadece {total_receipts} fiş var, daha sık kayıt tut."
     else:
         activity_score = 0
-        activity_desc = "Son 30 günde hiç fiş girilmemiş."
+        activity_desc = "Son 30 günde fiş girişi yok. Bugün ilk fişini ekle!"
     activity_pct = min(round(total_receipts / 20 * 100), 100)
 
     # ── TOPLAM SKOR & HARF NOTU ────────────────────────────────────────────
