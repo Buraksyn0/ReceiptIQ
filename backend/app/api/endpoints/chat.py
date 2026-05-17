@@ -17,8 +17,14 @@ from app.models.savings_goal import SavingsGoal
 router = APIRouter()
 
 
+class HistoryMessage(BaseModel):
+    role: str  # "user" veya "assistant"
+    content: str
+
+
 class ChatRequest(BaseModel):
     question: str
+    history: list[HistoryMessage] = []
 
 
 class ChatResponse(BaseModel):
@@ -39,10 +45,12 @@ async def chat(
 
     from app.services.chat import chat_with_receipts
 
+    history = [{"role": m.role, "content": m.content} for m in payload.history]
     answer = await chat_with_receipts(
         db=db,
         user_id=current_user.id,
         question=payload.question,
+        history=history,
     )
     return ChatResponse(answer=answer)
 
@@ -55,17 +63,18 @@ async def financial_score_chat(
 ):
     """
     Finansal skor bağlamlı AI asistan.
-    Skor faktörleri, bütçe ve harcama verileri otomatik olarak GPT bağlamına eklenir.
     """
     if not payload.question or not payload.question.strip():
         raise HTTPException(status_code=400, detail="Soru boş olamaz.")
 
     from app.services.chat import chat_with_financial_score
 
+    history = [{"role": m.role, "content": m.content} for m in payload.history]
     answer = await chat_with_financial_score(
         db=db,
         user_id=current_user.id,
         question=payload.question,
+        history=history,
     )
     return ChatResponse(answer=answer)
 
@@ -78,16 +87,17 @@ async def savings_chat(
 ):
     """
     Tasarruf hedefi bağlamlı AI asistan.
-    Hedef bilgileri otomatik olarak GPT bağlamına eklenir.
     """
     if not payload.question or not payload.question.strip():
         raise HTTPException(status_code=400, detail="Soru boş olamaz.")
 
     from app.services.chat import chat_with_savings_goal
 
+    history = [{"role": m.role, "content": m.content} for m in payload.history]
     answer = await chat_with_savings_goal(
         db=db,
         user_id=current_user.id,
         question=payload.question,
+        history=history,
     )
     return ChatResponse(answer=answer)
