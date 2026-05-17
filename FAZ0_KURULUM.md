@@ -94,4 +94,4 @@ Faz 0 bitti. Şimdi Faz 1'e geçebiliriz: **OCR pipeline**.
 - TR fiş regex parser
 - SHA-256 dedup + UUID storage
 
-Hazır olduğunda söyle, başlayalım.
+
