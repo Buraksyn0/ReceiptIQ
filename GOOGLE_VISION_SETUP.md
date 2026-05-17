@@ -148,10 +148,4 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ---
 
-## Sıradaki Adım
 
-Vision aktive olunca testimiz yepyeni bir kalitede olacak. Sonuçları paylaş, oradan
-karşılaştırma yapacağım. Vision iyi çalışırsa:
-- Tesseract kodunu silmeyeceğiz — fallback olarak kalacak
-- `.env`'de provider değişikliği ile geri dönülebilir
-- Bitirme savunmasında "biz hibrit OCR mimarisi kurduk" diyebilirsin
