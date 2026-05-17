@@ -27,6 +27,8 @@ Aynı zamanda samimi ve yardımsever bir asistansın; selamlaşma ve genel sohbe
 Kurallar:
 - Her zaman Türkçe yanıt ver
 - Kısa ve net ol (2-5 cümle yeterli)
+- Konuşma geçmişini dikkate alarak tutarlı ve bağlama uygun yanıtlar ver
+- "Hayır", "tamam", "oldu", "teşekkürler", "yok" gibi kapanış ifadelerine kısa ve doğal şekilde karşılık ver — yeniden tanıtım yapma
 - Selamlama veya genel sorularda sıcak ve samimi yanıt ver, ardından finansal konulara nazikçe yönlendir
 - Finansal sorularda sana verilen GERÇEK verilere dayan; tahmin veya varsayım yapma
 - Tutar bilgilerinde ₺ sembolü kullan
@@ -213,10 +215,12 @@ async def chat_with_receipts(
     db: AsyncSession,
     user_id: uuid.UUID,
     question: str,
+    history: list[dict] | None = None,
 ) -> str:
     """
     Kullanıcının sorusuna DB analitik + RAG + GPT-4o ile yanıt üretir.
     Yanıta ilgili fişler kaynak olarak eklenir.
+    history: [{"role": "user"/"assistant", "content": "..."}]
     """
     # 1. DB'den gerçek analitik özet
     analytics_context = await _build_analytics_context(db, user_id)
@@ -244,12 +248,19 @@ async def chat_with_receipts(
 
         client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
+        # Sistem mesajı + bağlam
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT + f"\n\n{full_context}"},
+        ]
+        # Önceki konuşma geçmişi (son 10 mesaj)
+        if history:
+            messages.extend(history[-10:])
+        # Şimdiki soru
+        messages.append({"role": "user", "content": question})
+
         response = await client.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"{full_context}\n\nKullanıcı sorusu: {question}"},
-            ],
+            messages=messages,
             temperature=0.3,
             max_tokens=600,
         )
@@ -274,6 +285,8 @@ Aynı zamanda samimi ve yardımsever bir asistansın; selamlaşma ve genel sohbe
 Kurallar:
 - Her zaman Türkçe yanıt ver
 - Kısa, net ve motive edici ol (2-4 cümle)
+- Konuşma geçmişini dikkate alarak tutarlı ve bağlama uygun yanıtlar ver
+- "Hayır", "tamam", "oldu", "teşekkürler", "yok" gibi kapanış ifadelerine kısa ve doğal şekilde karşılık ver — yeniden tanıtım yapma
 - Selamlama veya genel sorularda sıcak yanıt ver, ardından tasarruf hedefine nazikçe yönlendir
 - Tasarruf sorularında sana verilen GERÇEK verilere dayan
 - Tutar bilgilerinde ₺ sembolü kullan
@@ -363,6 +376,8 @@ Aynı zamanda samimi ve yardımsever bir asistansın; selamlaşma ve genel sohbe
 Kurallar:
 - Her zaman Türkçe yanıt ver
 - Kısa, net ve motive edici ol (2-5 cümle)
+- Konuşma geçmişini dikkate alarak tutarlı ve bağlama uygun yanıtlar ver
+- "Hayır", "tamam", "oldu", "teşekkürler", "yok" gibi kapanış ifadelerine kısa ve doğal şekilde karşılık ver — yeniden tanıtım yapma
 - Selamlama veya genel sorularda sıcak yanıt ver, ardından finansal sağlık konularına nazikçe yönlendir
 - Finansal sorularda sana verilen GERÇEK skor ve faktör verilerine dayan
 - Tutar bilgilerinde ₺ sembolü kullan
@@ -474,6 +489,7 @@ async def chat_with_financial_score(
     db: AsyncSession,
     user_id: uuid.UUID,
     question: str,
+    history: list[dict] | None = None,
 ) -> str:
     """
     Finansal skor bağlamıyla GPT-4o'ya sor.
@@ -488,12 +504,16 @@ async def chat_with_financial_score(
 
         client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
+        messages = [
+            {"role": "system", "content": FINANCIAL_SCORE_SYSTEM_PROMPT + f"\n\n{full_context}"},
+        ]
+        if history:
+            messages.extend(history[-10:])
+        messages.append({"role": "user", "content": question})
+
         response = await client.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "system", "content": FINANCIAL_SCORE_SYSTEM_PROMPT},
-                {"role": "user", "content": f"{full_context}\n\nKullanıcı sorusu: {question}"},
-            ],
+            messages=messages,
             temperature=0.4,
             max_tokens=500,
         )
@@ -508,6 +528,7 @@ async def chat_with_savings_goal(
     db: AsyncSession,
     user_id: uuid.UUID,
     question: str,
+    history: list[dict] | None = None,
 ) -> str:
     """
     Tasarruf hedefi bağlamıyla GPT-4o'ya sor.
@@ -522,12 +543,16 @@ async def chat_with_savings_goal(
 
         client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
+        messages = [
+            {"role": "system", "content": SAVINGS_SYSTEM_PROMPT + f"\n\n{full_context}"},
+        ]
+        if history:
+            messages.extend(history[-10:])
+        messages.append({"role": "user", "content": question})
+
         response = await client.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "system", "content": SAVINGS_SYSTEM_PROMPT},
-                {"role": "user", "content": f"{full_context}\n\nKullanıcı sorusu: {question}"},
-            ],
+            messages=messages,
             temperature=0.4,
             max_tokens=400,
         )

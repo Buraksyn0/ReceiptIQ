@@ -58,10 +58,15 @@ export default function FinancialScoreChatScreen({ navigation }) {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
 
     try {
+      const history = messages
+        .filter(m => m.text !== null)
+        .slice(-10)
+        .map(m => ({ role: m.role, content: m.text }));
+
       const res = await fetch(apiUrl('/chat/financial-score'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${userToken}` },
-        body: JSON.stringify({ question: text }),
+        body: JSON.stringify({ question: text, history }),
       });
       const data = await res.json();
       const answer = res.ok ? (data.answer || 'Yanıt alınamadı.') : 'Bir hata oluştu.';
@@ -78,7 +83,7 @@ export default function FinancialScoreChatScreen({ navigation }) {
       setLoading(false);
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
     }
-  }, [input, loading, userToken]);
+  }, [input, loading, userToken, messages]);
 
   return (
     <SafeAreaView style={styles.container}>
