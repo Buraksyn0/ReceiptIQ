@@ -252,6 +252,4 @@ Lejant: ✅ Var ve çalışıyor · 🟡 Kısmen var / iskelet hazır · ❌ Yok
 
 ---
 
-# TAHMİNİ TOPLAM SÜRE
-**~3-4 hafta** yoğun çalışırsan tüm fazlar.
-"Sunulabilir minimum" için Faz 0+1+2+3+5+6 yeterli (~2-2.5 hafta).
+
