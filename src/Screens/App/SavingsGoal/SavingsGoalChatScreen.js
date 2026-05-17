@@ -107,16 +107,34 @@ export default function SavingsGoalChatScreen({ navigation }) {
                 <Text style={styles.userMessageText}>{msg.text}</Text>
               </View>
             ) : (
-              <View key={msg.id} style={styles.aiMessageContainer}>
-                <Text style={styles.aiMessageText}>
-                  {msg.text ?? 'Merhaba! 👋 Tasarruf hedefin hakkında sormak istediğin bir şey var mı?'}
-                </Text>
+              <View key={msg.id} style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: vs(16) }}>
+                <View style={{
+                  width: s(32), height: s(32), borderRadius: s(16),
+                  backgroundColor: Colors.primary, justifyContent: 'center',
+                  alignItems: 'center', marginRight: s(8), marginTop: s(2),
+                }}>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: ms(14) }}>R</Text>
+                </View>
+                <View style={[styles.aiMessageContainer, { marginBottom: 0 }]}>
+                  <Text style={styles.aiMessageText}>
+                    {msg.text ?? 'Merhaba! 👋 Tasarruf hedefin hakkında sormak istediğin bir şey var mı?'}
+                  </Text>
+                </View>
               </View>
             )
           )}
           {loading && (
-            <View style={styles.aiMessageContainer}>
-              <ActivityIndicator size="small" color={Colors.primary} />
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: vs(16) }}>
+              <View style={{
+                width: s(32), height: s(32), borderRadius: s(16),
+                backgroundColor: Colors.primary, justifyContent: 'center',
+                alignItems: 'center', marginRight: s(8), marginTop: s(2),
+              }}>
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: ms(14) }}>R</Text>
+              </View>
+              <View style={[styles.aiMessageContainer, { marginBottom: 0 }]}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+              </View>
             </View>
           )}
           {messages.length === 1 && !loading && (

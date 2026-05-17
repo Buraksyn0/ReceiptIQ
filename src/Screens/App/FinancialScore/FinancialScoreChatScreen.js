@@ -127,7 +127,7 @@ export default function FinancialScoreChatScreen({ navigation }) {
             >
               {msg.role === 'assistant' && (
                 <View style={styles.assistantAvatar}>
-                  <Ionicons name="analytics" size={14} color={Colors.primary} />
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: ms(13) }}>R</Text>
                 </View>
               )}
               <View style={[
