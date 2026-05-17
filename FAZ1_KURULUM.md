@@ -199,4 +199,4 @@ Bu maddeleri Faz 1.5'te bitirebiliriz:
 - Dashboard'da "kaynak dosya" rozetinin gösterimi
 - ML Kategorilendirme (Faz 2): TF-IDF + LogReg `.pkl`
 
-İlerlemek istediğinde söyle.
+
