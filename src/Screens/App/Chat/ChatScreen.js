@@ -118,7 +118,15 @@ function ChatScreen() {
             }
             const { mainText, sources } = parseAssistantMessage(msg.text);
             return (
-              <View key={msg.id} style={styles.aiMessageContainer}>
+              <View key={msg.id} style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: vs(16) }}>
+                <View style={{
+                  width: s(32), height: s(32), borderRadius: s(16),
+                  backgroundColor: Colors.primary, justifyContent: 'center',
+                  alignItems: 'center', marginRight: s(8), marginTop: s(2),
+                }}>
+                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: ms(14) }}>R</Text>
+                </View>
+                <View style={[styles.aiMessageContainer, { marginBottom: 0 }]}>
                 <Text style={styles.aiMessageText}>{mainText ?? t.chatWelcome}</Text>
                 {sources.length > 0 && (
                   <View style={styles.sourcesSection}>
@@ -134,12 +142,22 @@ function ChatScreen() {
                     ))}
                   </View>
                 )}
+                </View>
               </View>
             );
           })}
           {loading && (
-            <View style={styles.aiMessageContainer}>
-              <ActivityIndicator size="small" color={Colors.primary} />
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: vs(16) }}>
+              <View style={{
+                width: s(32), height: s(32), borderRadius: s(16),
+                backgroundColor: Colors.primary, justifyContent: 'center',
+                alignItems: 'center', marginRight: s(8), marginTop: s(2),
+              }}>
+                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: ms(14) }}>R</Text>
+              </View>
+              <View style={[styles.aiMessageContainer, { marginBottom: 0 }]}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+              </View>
             </View>
           )}
           {messages.length === 1 && !loading && (
