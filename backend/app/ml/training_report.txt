@@ -1,0 +1,23 @@
+CV Accuracy: 1.000 ± 0.000
+
+               precision    recall  f1-score   support
+
+     clothing      1.000     1.000     1.000        60
+    education      1.000     1.000     1.000        60
+entertainment      1.000     1.000     1.000        60
+         food      1.000     1.000     1.000        60
+         fuel      1.000     1.000     1.000        60
+       health      1.000     1.000     1.000        60
+       market      1.000     1.000     1.000        60
+        other      1.000     1.000     1.000        60
+personal_care      1.000     1.000     1.000        60
+         rent      1.000     1.000     1.000        60
+       salary      1.000     1.000     1.000        60
+     shopping      1.000     1.000     1.000        60
+       sports      1.000     1.000     1.000        60
+subscriptions      1.000     1.000     1.000        60
+    transport      1.000     1.000     1.000        60
+
+     accuracy                          1.000       900
+    macro avg      1.000     1.000     1.000       900
+ weighted avg      1.000     1.000     1.000       900

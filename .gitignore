@@ -32,6 +32,11 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+backend/.env
+
+# Faz 1: Yüklenen dosyalar (kullanıcı verisi)
+backend/storage/
 
 # typescript
 *.tsbuildinfo

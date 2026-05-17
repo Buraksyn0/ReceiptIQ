@@ -10,20 +10,53 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F5F7FA"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.buraksayan.receiptiq",
+      "infoPlist": {
+        "NSCameraUsageDescription": "ReceiptIQ fişlerinizi tarayabilmek için kameraya erişmesi gerekiyor.",
+        "NSPhotoLibraryUsageDescription": "Fiş görsellerini galerinizden seçebilmek için galeriye erişmesi gerekiyor.",
+        "NSFaceIDUsageDescription": "ReceiptIQ'ya hızlı ve güvenli giriş yapabilmek için Face ID kullanılıyor."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#008080"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "ReceiptIQ fişlerinizi tarayabilmek için kameraya erişmesi gerekiyor."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Fiş görsellerini galerinizden seçebilmek için galeriye erişmesi gerekiyor."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b63d0b50-a4cc-4b1b-a3b5-cb557b91e756"
+      }
+    },
+    "owner": "sayanburaks"
   }
 }

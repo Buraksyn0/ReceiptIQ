@@ -1,0 +1,40 @@
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+sqlalchemy[asyncio]>=2.0.30
+asyncpg>=0.29.0
+pydantic-settings>=2.2.1
+alembic>=1.13.1
+python-jose[cryptography]>=3.3.0
+python-multipart>=0.0.9
+email-validator>=2.1.1
+bcrypt>=4.0.0
+
+# === Faz 1: OCR & Görüntü İşleme ===
+# Pillow: görsel önişleme (resize, gri tonlama, kontrast)
+Pillow>=10.0.0
+# pytesseract: yerel OCR fallback için (Tesseract sarmalayıcısı)
+pytesseract>=0.3.10
+# Google Cloud Vision: prod default OCR
+google-cloud-vision>=3.7.0
+# aiofiles: async dosya I/O
+aiofiles>=23.2.1
+
+# === Faz 2: ML Kategorilendirme ===
+scikit-learn>=1.4.0
+joblib>=1.3.0
+
+# === Faz 3: RAG + LLM Chat ===
+openai>=1.30.0
+qdrant-client>=1.9.0
+
+# === Dışa Aktarma ===
+reportlab>=4.0.0
+
+# === E-posta ===
+sendgrid>=6.11.0
+
+# === Zamanlayıcı ===
+apscheduler>=3.10.0
+
+# === HTTP İstemci (push bildirim için) ===
+httpx>=0.27.0

@@ -1,0 +1,18 @@
+export const CATEGORIES = [
+    { id: 'food', label: 'Gıda ', icon: 'restaurant-outline', color: '#FF9F43' },
+    { id: 'market', label: 'Market', icon: 'basket-outline', color: '#FDCB6E' }, 
+    { id: 'shopping', label: 'Alışveriş', icon: 'cart-outline', color: '#54A0FF' },
+    { id: 'transport', label: 'Ulaşım', icon: 'bus-outline', color: '#10AC84' },
+    { id: 'entertainment', label: 'Eğlence', icon: 'game-controller-outline', color: '#EE5253' },
+    { id: 'rent', label: 'Kira/Fatura', icon: 'home-outline', color: '#5F27CD' },
+    { id: 'salary', label: 'Maaş/Gelir', icon: 'cash-outline', color: '#2ECC71' },
+    { id: 'education', label: 'Eğitim', icon: 'book-outline', color: '#F3A683' },
+    { id: 'sports', label: 'Spor', icon: 'barbell-outline', color: '#786FA6' },
+    { id: 'clothing', label: 'Giyim', icon: 'shirt-outline', color: '#D980FA' },
+    { id: 'fuel', label: 'Yakıt', icon: 'speedometer-outline', color: '#FF7F50' },
+    { id: 'health', label: 'Sağlık', icon: 'medkit-outline', color: '#00CEC9' },
+    { id: 'personal_care', label: 'Kişisel Bakım', icon: 'sparkles-outline', color: '#FDA7DF' },
+    { id: 'subscriptions', label: 'Abonelik', icon: 'repeat-outline', color: '#82CCDD' },
+    // 👇 Diğer her zaman en sonda kalarak listeyi tamamlıyor
+    { id: 'other', label: 'Diğer', icon: 'ellipsis-horizontal-circle-outline', color: '#8395A7' },
+  ];
