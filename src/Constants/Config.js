@@ -20,12 +20,14 @@ import { Platform } from 'react-native';
 
 const ENV_URL = process.env.EXPO_PUBLIC_API_URL;
 
+const RAILWAY_URL = 'https://receiptiq-production-2f09.up.railway.app';
+
 function getDefaultBaseUrl() {
   if (Platform.OS === 'android') return 'http://10.0.2.2:8000';
   return 'http://127.0.0.1:8000';
 }
 
-export const API_BASE_URL = (ENV_URL && ENV_URL.trim()) || getDefaultBaseUrl();
+export const API_BASE_URL = (ENV_URL && ENV_URL.trim()) || RAILWAY_URL;
 
 export const API_PREFIX = '/api/v1';
 
