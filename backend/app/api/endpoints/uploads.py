@@ -181,15 +181,19 @@ async def confirm_upload_as_receipt(
     db.add(receipt)
     await db.flush()  # receipt.id elde et
 
-    # Faz 4: Anomali tespiti
-    from app.services.anomaly_detector import check_receipt_anomaly
-    is_anomaly, anomaly_score = await check_receipt_anomaly(
-        db=db,
-        user_id=current_user.id,
-        receipt_id=receipt.id,
-        category=payload.category,
-        amount=payload.total_amount,
-    )
+    # Faz 4: Anomali tespiti (hata olursa receipt kaydını engelleme)
+    is_anomaly, anomaly_score = False, 0.0
+    try:
+        from app.services.anomaly_detector import check_receipt_anomaly
+        is_anomaly, anomaly_score = await check_receipt_anomaly(
+            db=db,
+            user_id=current_user.id,
+            receipt_id=receipt.id,
+            category=payload.category,
+            amount=payload.total_amount,
+        )
+    except Exception:
+        pass
     receipt.is_anomaly = is_anomaly
     receipt.anomaly_score = anomaly_score
     db.add(receipt)
@@ -197,30 +201,36 @@ async def confirm_upload_as_receipt(
     upload.receipt_id = receipt.id
     db.add(upload)
 
-    # Faz 3: Fişi Qdrant vektör veritabanına indexle (arka planda)
-    from app.services.vector_store import index_receipt
-    index_receipt(
-        receipt_id=receipt.id,
-        user_id=current_user.id,
-        text=receipt.text_content or "",
-        metadata={
-            "merchant_name": receipt.merchant_name or "",
-            "category": receipt.category or "",
-            "amount": str(receipt.total_amount) if receipt.total_amount else "",
-            "date": receipt.receipt_date.isoformat() if receipt.receipt_date else "",
-            "text": (receipt.text_content or "")[:500],
-        },
-    )
+    # Faz 3: Fişi Qdrant vektör veritabanına indexle (arka planda, hata olursa sessizce geç)
+    try:
+        from app.services.vector_store import index_receipt
+        index_receipt(
+            receipt_id=receipt.id,
+            user_id=current_user.id,
+            text=receipt.text_content or "",
+            metadata={
+                "merchant_name": receipt.merchant_name or "",
+                "category": receipt.category or "",
+                "amount": str(receipt.total_amount) if receipt.total_amount else "",
+                "date": receipt.receipt_date.isoformat() if receipt.receipt_date else "",
+                "text": (receipt.text_content or "")[:500],
+            },
+        )
+    except Exception:
+        pass
 
     # Bütçe aşımı kontrolü
-    if payload.receipt_type != "income":
-        from app.services.budget_checker import check_and_notify_budget
-        await check_and_notify_budget(
-            db=db,
-            user_id=current_user.id,
-            category=payload.category or "",
-            receipt_id=receipt.id,
-        )
+    try:
+        if payload.receipt_type != "income":
+            from app.services.budget_checker import check_and_notify_budget
+            await check_and_notify_budget(
+                db=db,
+                user_id=current_user.id,
+                category=payload.category or "",
+                receipt_id=receipt.id,
+            )
+    except Exception:
+        pass
 
     # Faz 6: Anomali varsa bildirim oluştur
     if is_anomaly:
