@@ -294,15 +294,14 @@ async def confirm_upload_as_receipt(
 
     await db.commit()
 
-    # receipt_tags ilişkisini eager load ile yeniden sorgula
+    # tags ilişkisini eager load ile yeniden sorgula
     # (async SQLAlchemy lazy loading desteklemediği için gerekli)
-    from app.models.receipt_tag import ReceiptTag
-    from app.models.tag import Tag
+    from app.models.tag import ReceiptTag
     result2 = await db.execute(
         select(Receipt)
         .where(Receipt.id == receipt.id)
         .options(
-            selectinload(Receipt.receipt_tags).selectinload(ReceiptTag.tag)
+            selectinload(Receipt.tags).selectinload(ReceiptTag.tag)
         )
     )
     receipt = result2.scalars().first()
