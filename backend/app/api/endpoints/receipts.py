@@ -278,7 +278,7 @@ async def create_receipt(
 async def get_receipt_image(
     receipt_id: uuid.UUID,
     db: AsyncSession = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_user),
+    current_user: User = Depends(deps.get_current_user_or_token),
 ):
     """
     Fişe bağlı tarama görselini döner (JPEG / PNG).

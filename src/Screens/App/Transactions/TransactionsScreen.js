@@ -348,7 +348,7 @@ function TransactionsScreen({ navigation }) {
     ? (CATEGORIES.find(c => c.label === detailItem.category || c.id === detailItem.category) || CATEGORIES.find(c => c.id === 'other'))
     : null;
   const detailImageUri = detailItem?.has_photo
-    ? apiUrl(`/receipts/${detailItem.id}/image`)
+    ? apiUrl(`/receipts/${detailItem.id}/image`) + `?token=${userToken}`
     : null;
 
   return (
@@ -503,7 +503,7 @@ function TransactionsScreen({ navigation }) {
                         activeOpacity={0.85}
                       >
                         <Image
-                          source={{ uri: detailImageUri, headers: { Authorization: `Bearer ${userToken}` } }}
+                          source={{ uri: detailImageUri }}
                           style={styles.photoThumbImage}
                           resizeMode="cover"
                         />
@@ -611,7 +611,7 @@ function TransactionsScreen({ navigation }) {
           >
             {detailImageUri && (
               <Image
-                source={{ uri: detailImageUri, headers: { Authorization: `Bearer ${userToken}` } }}
+                source={{ uri: detailImageUri }}
                 style={styles.photoViewerImage}
                 resizeMode="contain"
               />
