@@ -24,6 +24,11 @@ class TesseractProvider(OCRProvider):
     def extract_text(self, image_path: str) -> OCRResult:
         try:
             import pytesseract
+            import shutil
+            # Railway/Linux'ta tesseract path'ini açıkça belirt
+            tess_path = shutil.which("tesseract")
+            if tess_path:
+                pytesseract.pytesseract.tesseract_cmd = tess_path
         except ImportError as e:
             raise OCRError(
                 "pytesseract yüklü değil. requirements.txt güncel mi?"
