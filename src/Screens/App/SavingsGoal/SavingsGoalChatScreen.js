@@ -109,11 +109,18 @@ export default function SavingsGoalChatScreen({ navigation }) {
             ) : (
               <View key={msg.id} style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: vs(16) }}>
                 <View style={{
-                  width: s(32), height: s(32), borderRadius: s(16),
+                  width: s(34), height: s(34), borderRadius: s(17),
                   backgroundColor: Colors.primary, justifyContent: 'center',
-                  alignItems: 'center', marginRight: s(8), marginTop: s(2),
+                  alignItems: 'center', marginRight: s(10), marginTop: s(2),
+                  shadowColor: Colors.primary,
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: s(6),
+                  elevation: 5,
+                  borderWidth: 1.5,
+                  borderColor: 'rgba(255,255,255,0.3)',
                 }}>
-                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: ms(14) }}>R</Text>
+                  <Text style={{ color: '#fff', fontWeight: '800', fontSize: ms(13), letterSpacing: 0.5 }}>R</Text>
                 </View>
                 <View style={[styles.aiMessageContainer, { marginBottom: 0 }]}>
                   <Text style={styles.aiMessageText}>
@@ -126,11 +133,18 @@ export default function SavingsGoalChatScreen({ navigation }) {
           {loading && (
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: vs(16) }}>
               <View style={{
-                width: s(32), height: s(32), borderRadius: s(16),
+                width: s(34), height: s(34), borderRadius: s(17),
                 backgroundColor: Colors.primary, justifyContent: 'center',
-                alignItems: 'center', marginRight: s(8), marginTop: s(2),
+                alignItems: 'center', marginRight: s(10), marginTop: s(2),
+                shadowColor: Colors.primary,
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.4,
+                shadowRadius: s(6),
+                elevation: 5,
+                borderWidth: 1.5,
+                borderColor: 'rgba(255,255,255,0.3)',
               }}>
-                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: ms(14) }}>R</Text>
+                <Text style={{ color: '#fff', fontWeight: '800', fontSize: ms(13), letterSpacing: 0.5 }}>R</Text>
               </View>
               <View style={[styles.aiMessageContainer, { marginBottom: 0 }]}>
                 <ActivityIndicator size="small" color={Colors.primary} />
