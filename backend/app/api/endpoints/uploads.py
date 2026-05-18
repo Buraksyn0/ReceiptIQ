@@ -4,6 +4,25 @@
 
 from __future__ import annotations
 import uuid
+
+# Kategori ID → Türkçe etiket eşleme tablosu
+CATEGORY_LABELS: dict[str, str] = {
+    "food": "Gıda",
+    "market": "Market",
+    "shopping": "Alışveriş",
+    "transport": "Ulaşım",
+    "entertainment": "Eğlence",
+    "rent": "Kira/Fatura",
+    "salary": "Maaş/Gelir",
+    "education": "Eğitim",
+    "sports": "Spor",
+    "clothing": "Giyim",
+    "fuel": "Yakıt",
+    "health": "Sağlık",
+    "personal_care": "Kişisel Bakım",
+    "subscriptions": "Abonelik",
+    "other": "Diğer",
+}
 from typing import List
 
 from fastapi import (
@@ -244,7 +263,7 @@ async def confirm_upload_as_receipt(
             message=(
                 f"{receipt.merchant_name or 'Bilinmeyen mağaza'} fişindeki "
                 f"₺{float(receipt.total_amount):.2f} tutarı, "
-                f"{receipt.category} kategorisindeki normal harcamalarınızdan "
+                f"{CATEGORY_LABELS.get(receipt.category or '', receipt.category or 'Diğer')} kategorisindeki normal harcamalarınızdan "
                 f"belirgin şekilde farklı."
             ),
         )
