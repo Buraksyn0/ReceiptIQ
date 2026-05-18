@@ -220,6 +220,16 @@ function ScanScreen() {
         </View>
       </SafeAreaView>
 
+      {/* İpucu kartı */}
+      {!busy && (
+        <View pointerEvents="none" style={styles.tipCard}>
+          <Ionicons name="information-circle-outline" size={15} color="rgba(255,255,255,0.85)" style={{ marginRight: 6 }} />
+          <Text style={styles.tipText}>
+            En iyi sonuç için fişi düz tutun, iyi aydınlatın ve tüm yazıların çerçevede olduğundan emin olun.
+          </Text>
+        </View>
+      )}
+
       {/* Tarama çerçevesi (görsel rehber) */}
       <View pointerEvents="none" style={styles.frameContainer}>
         <View style={styles.frame} />
@@ -405,6 +415,27 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     marginTop: vs(14),
+  },
+  tipCard: {
+    position: 'absolute',
+    top: vs(100),
+    left: s(20),
+    right: s(20),
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: s(10),
+    paddingHorizontal: s(12),
+    paddingVertical: vs(8),
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  tipText: {
+    flex: 1,
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: ms(11),
+    lineHeight: ms(16),
   },
 });
 
