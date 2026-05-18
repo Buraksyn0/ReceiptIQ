@@ -126,7 +126,7 @@ function ScanScreen() {
         return;
       }
       const res = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaType ? [ImagePicker.MediaType.IMAGE] : ImagePicker.MediaTypeOptions.Images,
         quality: 0.9,
       });
       if (res.canceled) return;
