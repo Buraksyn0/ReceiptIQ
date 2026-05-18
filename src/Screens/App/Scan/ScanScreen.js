@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     fontSize: ms(12),
     fontWeight: '500',
     textAlign: 'center',
-    marginTop: vs(14),
+    marginTop: vs(28),
   },
   tipCard: {
     position: 'absolute',
