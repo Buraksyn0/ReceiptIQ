@@ -59,10 +59,10 @@ _AMOUNT_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Tutar SATIRI: sadece tutar içeren satır — *, +, ₺ öneki olabilir.
+# Tutar SATIRI: sadece tutar içeren satır — *, +, =, -, ₺ öneki olabilir.
 # .76.00 gibi OCR artifact'larını eler (başındaki . ile başlayan satırlar eşleşmez).
 _AMOUNT_LINE_RE = re.compile(
-    r"^[*+₺\s]*(\d{1,3}(?:[.,]\d{3})*[.,]\d{2}|\d+[.,]\d{2})\s*(?:₺|TL|TRY)?$",
+    r"^[*+=\-₺\s]*(\d{1,3}(?:[.,]\d{3})*[.,]\d{2}|\d+[.,]\d{2})\s*(?:₺|TL|TRY)?$",
     re.IGNORECASE,
 )
 
@@ -141,12 +141,18 @@ def _to_decimal(amount_str: str) -> Optional[Decimal]:
 
 def _parse_date(text: str) -> Optional[datetime]:
     """Metin içinden ilk geçerli TR tarihini bulur."""
+    from datetime import datetime as dt
+    current_year = dt.now().year
     for match in _DATE_RE.finditer(text):
         day, month, year = match.groups()
         if len(year) == 2:
             year = "20" + year  # 26 → 2026
+        year_int = int(year)
+        # OCR hatası: 7024 → 2024 gibi yanlış ilk rakam düzeltme
+        if year_int > current_year + 5:
+            year_int = int("2" + str(year_int)[1:])
         try:
-            return datetime(int(year), int(month), int(day))
+            return datetime(year_int, int(month), int(day))
         except (ValueError, TypeError):
             continue
     return None
@@ -234,6 +240,26 @@ def _find_merchant_name(lines: list[str]) -> Optional[str]:
     return None
 
 
+def _fallback_total(lines: list[str]) -> Optional[Decimal]:
+    """
+    Keyword tabanlı arama başarısız olursa devreye girer.
+
+    Fişin alt yarısındaki tüm standalone tutar satırlarını toplar ve
+    en büyük değeri toplam olarak döner.  Bu yaklaşım şunları yakalar:
+    - "*170,00" gibi yıldız önekli toplam satırları
+    - TOPLAM kelimesinin OCR tarafından tamamen bozulduğu durumlar
+    """
+    bottom = lines[max(0, len(lines) // 2):]
+    candidates: list[Decimal] = []
+    for line in bottom:
+        m = _AMOUNT_LINE_RE.match(line)
+        if m:
+            dec = _to_decimal(m.group(1))
+            if dec is not None and dec > 0:
+                candidates.append(dec)
+    return max(candidates) if candidates else None
+
+
 def parse_receipt(raw_text: str) -> ParsedReceipt:
     """
     Ana parse fonksiyonu. Tüm regex işlemlerini bir araya getirir.
@@ -245,6 +271,11 @@ def parse_receipt(raw_text: str) -> ParsedReceipt:
 
     merchant = _find_merchant_name(lines)
     total = _find_amount_after_keyword(raw_text, _TOTAL_KEYWORDS, take_max=True)
+
+    # Keyword bulunamadıysa alt yarıdaki en büyük tutarı toplam say
+    if total is None:
+        total = _fallback_total(lines)
+
     vat = _find_amount_after_keyword(raw_text, _VAT_KEYWORDS, take_max=False)
     rdate = _parse_date(raw_text)
 
