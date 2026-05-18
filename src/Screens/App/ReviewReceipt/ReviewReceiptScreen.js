@@ -17,6 +17,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { StackActions } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import Colors from '../../../Constants/Colors';
@@ -167,7 +168,7 @@ function ReviewReceiptScreen({ navigation, route }) {
         Alert.alert('Kaydedildi', 'Fiş başarıyla kaydedildi.', [
           {
             text: 'Tamam',
-            onPress: () => navigation.navigate('MainTabs'),
+            onPress: () => navigation.dispatch(StackActions.popToTop()),
           },
         ]);
       } else {
