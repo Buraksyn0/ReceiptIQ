@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     # === Faz 3: RAG + LLM Chat ===
     OPENAI_API_KEY: str | None = None
 
+    # === Qdrant Cloud ===
+    QDRANT_URL: str | None = None
+    QDRANT_API_KEY: str | None = None
+
     # === E-posta ===
     SENDGRID_API_KEY: str | None = None
     SENDGRID_FROM_EMAIL: str = "sayannburakks@gmail.com"
