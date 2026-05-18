@@ -244,20 +244,32 @@ def _fallback_total(lines: list[str]) -> Optional[Decimal]:
     """
     Keyword tabanlı arama başarısız olursa devreye girer.
 
-    Fişin alt yarısındaki tüm standalone tutar satırlarını toplar ve
-    en büyük değeri toplam olarak döner.  Bu yaklaşım şunları yakalar:
-    - "*170,00" gibi yıldız önekli toplam satırları
-    - TOPLAM kelimesinin OCR tarafından tamamen bozulduğu durumlar
+    Aşama 1 — Satır bazlı: Alt yarıdaki standalone tutar satırları
+    Aşama 2 — Esnek: Tüm metinden _AMOUNT_RE ile bulunan en büyük tutar
+               (satır sonu kısıtlaması yok; OCR gürültüsüne karşı dayanıklı)
     """
+    # Aşama 1: standalone tutar satırı (hızlı & kesin)
     bottom = lines[max(0, len(lines) // 2):]
     candidates: list[Decimal] = []
     for line in bottom:
-        m = _AMOUNT_LINE_RE.match(line)
+        stripped = line.strip()
+        m = _AMOUNT_LINE_RE.match(stripped)
         if m:
             dec = _to_decimal(m.group(1))
             if dec is not None and dec > 0:
                 candidates.append(dec)
-    return max(candidates) if candidates else None
+    if candidates:
+        return max(candidates)
+
+    # Aşama 2: esnek _AMOUNT_RE ile tüm metni tara, en büyük tutarı al
+    # (Tesseract satır formatı beklenenden farklıysa buraya düşer)
+    all_amounts: list[Decimal] = []
+    full_text = "\n".join(lines)
+    for m in _AMOUNT_RE.finditer(full_text):
+        dec = _to_decimal(m.group(1))
+        if dec is not None and dec > 0:
+            all_amounts.append(dec)
+    return max(all_amounts) if all_amounts else None
 
 
 def parse_receipt(raw_text: str) -> ParsedReceipt:
