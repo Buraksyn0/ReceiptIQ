@@ -514,6 +514,48 @@ function TransactionsScreen({ navigation }) {
                           <Text style={styles.photoOverlayText}>Büyütmek için dokun</Text>
                         </View>
                       </TouchableOpacity>
+
+                      {/* TAM EKRAN GÖRÜNTÜLEYICI — detay modalın içinde */}
+                      <Modal
+                        visible={showPhotoViewer}
+                        transparent={false}
+                        animationType="fade"
+                        onRequestClose={() => setShowPhotoViewer(false)}
+                      >
+                        <View style={styles.photoViewerContainer}>
+                          <SafeAreaView style={styles.photoViewerTopBar}>
+                            <TouchableOpacity
+                              style={styles.photoViewerCloseBtn}
+                              onPress={() => setShowPhotoViewer(false)}
+                            >
+                              <Ionicons name="close" size={24} color="#fff" />
+                            </TouchableOpacity>
+                            <Text style={styles.photoViewerTitle} numberOfLines={1}>
+                              {detailItem?.merchant_name || 'Fiş Fotoğrafı'}
+                            </Text>
+                            <View style={{ width: s(44) }} />
+                          </SafeAreaView>
+                          <ScrollView
+                            style={{ flex: 1 }}
+                            contentContainerStyle={styles.photoViewerContent}
+                            maximumZoomScale={4}
+                            minimumZoomScale={1}
+                            showsVerticalScrollIndicator={false}
+                            showsHorizontalScrollIndicator={false}
+                            centerContent
+                            bouncesZoom
+                          >
+                            <Image
+                              source={{ uri: detailImageUri }}
+                              style={styles.photoViewerImage}
+                              resizeMode="contain"
+                            />
+                          </ScrollView>
+                          <SafeAreaView style={styles.photoViewerBottomBar}>
+                            <Text style={styles.photoViewerHint}>Yakınlaştırmak için iki parmakla sürükle</Text>
+                          </SafeAreaView>
+                        </View>
+                      </Modal>
                     </View>
                   )}
 
@@ -576,52 +618,6 @@ function TransactionsScreen({ navigation }) {
             )}
           </Pressable>
         </Pressable>
-      </Modal>
-
-      {/* TAM EKRAN FOTOĞRAF GÖRÜNTÜLEYİCİ — detay modalın DIŞINDA, kardeş modal */}
-      <Modal
-        visible={showPhotoViewer}
-        transparent={false}
-        animationType="fade"
-        onRequestClose={() => setShowPhotoViewer(false)}
-      >
-        <View style={styles.photoViewerContainer}>
-          <SafeAreaView style={styles.photoViewerTopBar}>
-            <TouchableOpacity
-              style={styles.photoViewerCloseBtn}
-              onPress={() => setShowPhotoViewer(false)}
-            >
-              <Ionicons name="close" size={24} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.photoViewerTitle} numberOfLines={1}>
-              {detailItem?.merchant_name || 'Fiş Fotoğrafı'}
-            </Text>
-            <View style={{ width: s(44) }} />
-          </SafeAreaView>
-
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={styles.photoViewerContent}
-            maximumZoomScale={4}
-            minimumZoomScale={1}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-            centerContent
-            bouncesZoom
-          >
-            {detailImageUri && (
-              <Image
-                source={{ uri: detailImageUri }}
-                style={styles.photoViewerImage}
-                resizeMode="contain"
-              />
-            )}
-          </ScrollView>
-
-          <SafeAreaView style={styles.photoViewerBottomBar}>
-            <Text style={styles.photoViewerHint}>Yakınlaştırmak için iki parmakla sürükle</Text>
-          </SafeAreaView>
-        </View>
       </Modal>
 
       {/* FİLTRE MODAL */}
