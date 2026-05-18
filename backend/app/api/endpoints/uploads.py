@@ -17,6 +17,7 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.api import deps
 from app.models.user import User
@@ -292,7 +293,19 @@ async def confirm_upload_as_receipt(
     db.add(feedback)
 
     await db.commit()
-    await db.refresh(receipt)
+
+    # receipt_tags ilişkisini eager load ile yeniden sorgula
+    # (async SQLAlchemy lazy loading desteklemediği için gerekli)
+    from app.models.receipt_tag import ReceiptTag
+    from app.models.tag import Tag
+    result2 = await db.execute(
+        select(Receipt)
+        .where(Receipt.id == receipt.id)
+        .options(
+            selectinload(Receipt.receipt_tags).selectinload(ReceiptTag.tag)
+        )
+    )
+    receipt = result2.scalars().first()
     return receipt
 
 
