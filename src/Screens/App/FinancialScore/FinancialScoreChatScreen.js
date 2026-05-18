@@ -127,7 +127,7 @@ export default function FinancialScoreChatScreen({ navigation }) {
             >
               {msg.role === 'assistant' && (
                 <View style={styles.assistantAvatar}>
-                  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: ms(13) }}>R</Text>
+                  <Text style={{ color: '#fff', fontWeight: '800', fontSize: ms(13), letterSpacing: 0.5 }}>R</Text>
                 </View>
               )}
               <View style={[
@@ -164,7 +164,7 @@ export default function FinancialScoreChatScreen({ navigation }) {
           {loading && (
             <View style={[styles.messageBubble, styles.assistantBubble]}>
               <View style={styles.assistantAvatar}>
-                <Ionicons name="analytics" size={14} color={Colors.primary} />
+                <Text style={{ color: '#fff', fontWeight: '800', fontSize: ms(13), letterSpacing: 0.5 }}>R</Text>
               </View>
               <View style={[styles.bubbleContent, styles.assistantContent, styles.typingBubble]}>
                 <ActivityIndicator size="small" color={Colors.primary} />
@@ -233,10 +233,16 @@ const createStyles = (colors) => StyleSheet.create({
   assistantBubble: { justifyContent: 'flex-start', gap: s(8) },
 
   assistantAvatar: {
-    width: s(28), height: s(28), borderRadius: s(14),
-    backgroundColor: Colors.primary + '18',
-    borderWidth: 1, borderColor: Colors.primary + '30',
+    width: s(34), height: s(34), borderRadius: s(17),
+    backgroundColor: Colors.primary,
     alignItems: 'center', justifyContent: 'center',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 5,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
 
   bubbleContent: {

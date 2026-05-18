@@ -250,7 +250,9 @@ export default function SavingsGoalScreen({ navigation }) {
           <Ionicons name="arrow-back" size={24} color={colors.textMain} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Tasarruf Hedefi</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity onPress={openModal} style={styles.headerEditBtn}>
+          <Ionicons name={goal ? 'pencil-outline' : 'add'} size={22} color={Colors.primary} />
+        </TouchableOpacity>
       </View>
 
       {loading ? (
@@ -412,16 +414,11 @@ export default function SavingsGoalScreen({ navigation }) {
       )}
 
       {/* FAB BUTONLARI */}
-      {goal && (
-        <View style={styles.fabGroup}>
-          <TouchableOpacity style={[styles.fabSecondary, { backgroundColor: colors.card, borderColor: colors.border }]} onPress={openModal}>
-            <Ionicons name="pencil-outline" size={22} color={Colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('SavingsGoalChat')}>
-            <Ionicons name="chatbubble-ellipses" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      )}
+      <View style={styles.fabGroup}>
+        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('SavingsGoalChat')}>
+          <Ionicons name="chatbubble-ellipses" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
 
       {/* MODAL */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -653,6 +650,11 @@ function createStyles(colors) {
       paddingHorizontal: s(20), paddingVertical: vs(14),
     },
     backBtn: { width: s(40), height: s(40), justifyContent: 'center' },
+    headerEditBtn: {
+      width: s(40), height: s(40), borderRadius: s(12),
+      backgroundColor: Colors.primary + '15',
+      alignItems: 'center', justifyContent: 'center',
+    },
     headerTitle: { fontSize: ms(18), fontWeight: '700', color: colors.textMain },
 
     content: { paddingHorizontal: s(20), paddingBottom: vs(140) },
