@@ -24,7 +24,15 @@ def _get_client():
     """Qdrant client'ı bir kez oluştur, cache'le."""
     try:
         from qdrant_client import QdrantClient
-        client = QdrantClient(host="localhost", port=6333)
+        from app.core.config import settings
+
+        if settings.QDRANT_URL and settings.QDRANT_API_KEY:
+            client = QdrantClient(url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY)
+            log.info("Qdrant Cloud'a bağlanıldı: %s", settings.QDRANT_URL)
+        else:
+            client = QdrantClient(host="localhost", port=6333)
+            log.info("Qdrant localhost'a bağlanıldı.")
+
         _ensure_collection(client)
         return client
     except Exception as e:
