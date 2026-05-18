@@ -156,7 +156,13 @@ function ReviewReceiptScreen({ navigation, route }) {
           }),
         }
       );
-      const data = await r.json();
+      let data = null;
+      try {
+        data = await r.json();
+      } catch {
+        const raw = await r.text().catch(() => `HTTP ${r.status}`);
+        throw new Error(raw.slice(0, 120));
+      }
       if (r.ok) {
         Alert.alert('Kaydedildi', 'Fiş başarıyla kaydedildi.', [
           {
