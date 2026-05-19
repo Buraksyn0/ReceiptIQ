@@ -54,6 +54,7 @@ function SettingItem({ icon, label, color, onPress, isToggle, value, onToggle, s
 }
 
 function BottomSheetPicker({ visible, onClose, title, items, currentCode, onSelect, colors }) {
+  const { height: screenHeight } = useWindowDimensions();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable
@@ -737,7 +738,6 @@ function ChangePasswordModal({ visible, onClose, userEmail, userToken, t, colors
 
 function SettingsScreen({ navigation }) {
   const tabBarPadding = useTabBarPadding();
-  const { height: screenHeight } = useWindowDimensions();
   const { user, userToken, logout, refreshUser } = useContext(AuthContext);
   const { isDarkMode, colors } = useTheme();
   const { t, language } = useLanguage();

@@ -38,6 +38,20 @@ backend/.env
 # Faz 1: Yüklenen dosyalar (kullanıcı verisi)
 backend/storage/
 
+# Dökümantasyon — büyük dosyalar repo'da tutulmaz
+docs/*.docx
+docs/*.html
+docs/screenshots/
+
+# Python venv
+.venv/
+venv/
+backend/.venv/
+backend/venv/
+
+# macOS
+screenshots/
+
 # typescript
 *.tsbuildinfo
 

@@ -50,7 +50,7 @@ function TransactionsScreen({ navigation }) {
         headers: { 'Authorization': `Bearer ${userToken}` }
       });
       const data = await response.json();
-      setTransactions(data);
+      setTransactions(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("İşlem geçmişi hatası:", error);
     } finally {

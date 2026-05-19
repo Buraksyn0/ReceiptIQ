@@ -48,7 +48,7 @@ function BudgetScreen({ navigation }) {
         headers: { 'Authorization': `Bearer ${userToken}` }
       });
       const data = await response.json();
-      setBudgets(data);
+      setBudgets(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Bütçe çekme hatası:", error);
       Alert.alert("Hata", "Bütçe verileri yüklenemedi.");
