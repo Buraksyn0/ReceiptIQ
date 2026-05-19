@@ -21,7 +21,7 @@ async def get_current_user(
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Kimlik doğrulama başarısız.",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -50,7 +50,7 @@ async def _decode_token(token: str, db: AsyncSession) -> User:
     """Token string'inden kullanıcıyı çözer."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Kimlik doğrulama başarısız.",
     )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
@@ -83,4 +83,4 @@ async def get_current_user_or_token(
     # 2. Query param'dan dene
     if token_query:
         return await _decode_token(token_query, db)
-    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Oturum açılmamış.")

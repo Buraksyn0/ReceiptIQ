@@ -13,6 +13,5 @@ export const CATEGORIES = [
     { id: 'health', label: 'Sağlık', icon: 'medkit-outline', color: '#00CEC9' },
     { id: 'personal_care', label: 'Kişisel Bakım', icon: 'sparkles-outline', color: '#FDA7DF' },
     { id: 'subscriptions', label: 'Abonelik', icon: 'repeat-outline', color: '#82CCDD' },
-    // 👇 Diğer her zaman en sonda kalarak listeyi tamamlıyor
     { id: 'other', label: 'Diğer', icon: 'ellipsis-horizontal-circle-outline', color: '#8395A7' },
   ];

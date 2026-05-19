@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../../Constants/Colors';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useTabBarPadding, TAB_HEIGHT, TAB_GAP } from '../../../Constants/TabBar';
 import { apiUrl } from '../../../Constants/Config';
 import { AuthContext } from '../../../Context/AuthContext';
 import { useTheme } from '../../../Context/ThemeContext';
@@ -28,7 +28,7 @@ function ChatScreen() {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarPadding = useTabBarPadding();
   const scrollRef = useRef(null);
 
   const [messages, setMessages] = useState([
@@ -196,7 +196,7 @@ function ChatScreen() {
         </ScrollView>
 
         {/* INPUT */}
-        <View style={[styles.inputContainer, { marginBottom: keyboardVisible ? 8 : tabBarHeight + 12 }]}>
+        <View style={[styles.inputContainer, { marginBottom: keyboardVisible ? 8 : TAB_HEIGHT + TAB_GAP + 8 }]}>
           <TextInput
             style={styles.input}
             placeholder={t.chatPlaceholder}

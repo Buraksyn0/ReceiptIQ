@@ -1,24 +1,19 @@
 import os
-import sys
-import subprocess
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
-
-# Kritik paketlerin venv'de yüklü olduğundan emin ol
-_REQUIRED = ["openai", "qdrant_client", "sendgrid"]
-for _pkg in _REQUIRED:
-    try:
-        __import__(_pkg)
-    except ImportError:
-        print(f"[startup] '{_pkg}' bulunamadı, yükleniyor...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", _pkg, "-q"])
-        print(f"[startup] '{_pkg}' yüklendi.")
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from app.api.api import api_router
 from app.core.config import settings
 from app.core.scheduler import start_scheduler, stop_scheduler
+
+# Rate limiter — IP bazlı
+limiter = Limiter(key_func=get_remote_address)
 
 AVATARS_DIR = os.path.join(os.path.dirname(__file__), "../../avatars")
 os.makedirs(AVATARS_DIR, exist_ok=True)
@@ -38,6 +33,10 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     lifespan=lifespan,
 )
+
+# Rate limiter state'ini app'e bağla
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS — Expo Go (tunnel) ve emulator için açık tutuyoruz
 app.add_middleware(

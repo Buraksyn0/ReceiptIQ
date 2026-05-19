@@ -10,7 +10,6 @@ export default function createStyles(colors) {
     },
     container: {
       padding: s(24),
-      paddingBottom: vs(100),
     },
 
     // --- HEADER ---

@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react'; 
-import { View, Text, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../../Constants/Colors';
 import { apiUrl } from '../../../Constants/Config';
@@ -59,9 +59,10 @@ function SignInScreen({ navigation, route }) {
   };
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
       <SafeAreaView style={styles.screen}>
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.container}
         >
@@ -120,6 +121,7 @@ function SignInScreen({ navigation, route }) {
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
+    </TouchableWithoutFeedback>
   );
 }
 
