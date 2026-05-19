@@ -15,7 +15,7 @@ from app.core.scheduler import start_scheduler, stop_scheduler
 # Rate limiter — IP bazlı
 limiter = Limiter(key_func=get_remote_address)
 
-AVATARS_DIR = os.path.join(os.path.dirname(__file__), "../../avatars")
+AVATARS_DIR = os.path.join(os.path.dirname(__file__), "../avatars")
 os.makedirs(AVATARS_DIR, exist_ok=True)
 
 
