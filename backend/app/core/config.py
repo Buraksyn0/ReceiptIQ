@@ -31,8 +31,10 @@ class Settings(BaseSettings):
     # Tesseract dil paketleri (TR varsa: "tur+eng")
     TESSERACT_LANG: str = "tur+eng"
 
-    # Storage
-    STORAGE_DIR: str = "storage"
+    # Storage — production'da Railway volume için /data/storage kullan
+    # Railway dashboard: Volume → Mount Path: /data
+    # Environment variable: STORAGE_DIR=/data/storage
+    STORAGE_DIR: str = "/data/storage"
     MAX_UPLOAD_SIZE_MB: int = 10
 
     # === Faz 3: RAG + LLM Chat ===

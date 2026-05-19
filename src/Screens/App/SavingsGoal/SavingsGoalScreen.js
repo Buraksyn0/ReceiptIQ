@@ -2,7 +2,7 @@ import React, { useState, useContext, useCallback, useMemo, useRef } from 'react
 import {
   View, Text, SafeAreaView, TouchableOpacity, ScrollView,
   Modal, TextInput, KeyboardAvoidingView, Platform,
-  ActivityIndicator, Alert, StyleSheet, FlatList, Keyboard,
+  ActivityIndicator, Alert, StyleSheet, FlatList, Keyboard, TouchableWithoutFeedback, Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -278,9 +278,6 @@ export default function SavingsGoalScreen({ navigation }) {
                       <Text style={styles.goalDeadline}>Son tarih belirlenmedi</Text>
                     )}
                   </View>
-                  <TouchableOpacity onPress={openModal} style={styles.editBtn}>
-                    <Ionicons name="pencil-outline" size={20} color={Colors.primary} />
-                  </TouchableOpacity>
                 </View>
 
                 {/* PROGRESS BAR */}
@@ -423,8 +420,8 @@ export default function SavingsGoalScreen({ navigation }) {
       {/* MODAL */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-          <View style={styles.overlay}>
-            <View style={[styles.sheet, { backgroundColor: colors.card }]}>
+          <Pressable style={styles.overlay} onPress={Keyboard.dismiss}>
+            <Pressable style={[styles.sheet, { backgroundColor: colors.card }]} onPress={() => {}}>
               <Text style={[styles.sheetTitle, { color: colors.textMain }]}>
                 {goal ? 'Hedefi Düzenle' : 'Yeni Hedef'}
               </Text>
@@ -496,8 +493,8 @@ export default function SavingsGoalScreen({ navigation }) {
                   }
                 </TouchableOpacity>
               </View>
-            </View>
-          </View>
+            </Pressable>
+          </Pressable>
         </KeyboardAvoidingView>
       </Modal>
 

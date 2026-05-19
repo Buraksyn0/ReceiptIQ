@@ -1,48 +1,50 @@
 import random
 import string
 from datetime import timedelta, datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from app.api import deps
 from app.core import security
 from app.core.config import settings
 from app.models.user import User
+from app.models.password_reset import PasswordResetCode
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, User as UserSchema
 
-# Geçici bellek içi OTP deposu: {email: (otp, expires_at)}
-_reset_codes: dict = {}
-
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
+
 
 @router.post("/login", response_model=Token)
+@limiter.limit("10/minute")
 async def login_access_token(
+    request: Request,
     db: AsyncSession = Depends(deps.get_db),
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Token:
-    """
-    OAuth2 compatible token login, get an access token for future requests
-    """
+    """OAuth2 uyumlu token girişi."""
     result = await db.execute(select(User).filter(User.email == form_data.username))
     user = result.scalars().first()
     if not user or not security.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
-    
+        raise HTTPException(status_code=400, detail="E-posta veya şifre hatalı.")
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
         user.id, expires_delta=access_token_expires
     )
-    return Token(
-        access_token=access_token, token_type="bearer"
-    )
+    return Token(access_token=access_token, token_type="bearer")
+
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
+
 
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
@@ -51,7 +53,9 @@ class ResetPasswordRequest(BaseModel):
 
 
 @router.post("/forgot-password")
+@limiter.limit("5/minute")
 async def forgot_password(
+    request: Request,
     body: ForgotPasswordRequest,
     db: AsyncSession = Depends(deps.get_db),
 ):
@@ -61,10 +65,21 @@ async def forgot_password(
     if not user:
         return {"message": "Eğer bu e-posta kayıtlıysa, kod gönderildi."}
 
-    # 6 haneli OTP üret
+    # Mevcut kodları temizle
+    await db.execute(
+        delete(PasswordResetCode).where(PasswordResetCode.email == body.email)
+    )
+
+    # 6 haneli OTP üret ve DB'ye kaydet
     otp = "".join(random.choices(string.digits, k=6))
     expires = datetime.now(timezone.utc) + timedelta(minutes=15)
-    _reset_codes[body.email] = (otp, expires)
+    reset_entry = PasswordResetCode(
+        email=body.email,
+        code=otp,
+        expires_at=expires,
+    )
+    db.add(reset_entry)
+    await db.commit()
 
     # SendGrid ile e-posta gönder
     if settings.SENDGRID_API_KEY:
@@ -97,45 +112,55 @@ async def reset_password(
     body: ResetPasswordRequest,
     db: AsyncSession = Depends(deps.get_db),
 ):
-    entry = _reset_codes.get(body.email)
+    # DB'den geçerli kodu bul
+    result = await db.execute(
+        select(PasswordResetCode).where(
+            PasswordResetCode.email == body.email,
+            PasswordResetCode.used == False,
+        ).order_by(PasswordResetCode.created_at.desc())
+    )
+    entry = result.scalars().first()
+
     if not entry:
         raise HTTPException(status_code=400, detail="Geçersiz veya süresi dolmuş kod.")
 
-    otp, expires = entry
-    if datetime.now(timezone.utc) > expires:
-        del _reset_codes[body.email]
+    if datetime.now(timezone.utc) > entry.expires_at.replace(tzinfo=timezone.utc):
+        await db.delete(entry)
+        await db.commit()
         raise HTTPException(status_code=400, detail="Kodun süresi dolmuş. Lütfen tekrar isteyin.")
 
-    if otp != body.code:
+    if entry.code != body.code:
         raise HTTPException(status_code=400, detail="Hatalı kod.")
 
-    result = await db.execute(select(User).filter(User.email == body.email))
-    user = result.scalars().first()
+    # Kullanıcının şifresini güncelle
+    user_result = await db.execute(select(User).filter(User.email == body.email))
+    user = user_result.scalars().first()
     if not user:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
 
     user.hashed_password = security.get_password_hash(body.new_password)
+    # Kodu kullanıldı olarak işaretle ve sil
+    await db.delete(entry)
     await db.commit()
-    del _reset_codes[body.email]
 
     return {"message": "Şifre başarıyla güncellendi."}
 
 
 @router.post("/signup", response_model=UserSchema)
+@limiter.limit("5/minute")
 async def create_user(
+    request: Request,
     *,
     db: AsyncSession = Depends(deps.get_db),
     user_in: UserCreate,
 ) -> User:
-    """
-    Create new user.
-    """
+    """Yeni kullanıcı oluştur."""
     result = await db.execute(select(User).filter(User.email == user_in.email))
     user = result.scalars().first()
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this email already exists in the system.",
+            detail="Bu e-posta adresi zaten kayıtlı.",
         )
     user = User(
         email=user_in.email,

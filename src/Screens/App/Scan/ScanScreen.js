@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   },
   tipCard: {
     position: 'absolute',
-    top: vs(100),
+    top: vs(120),
     left: s(20),
     right: s(20),
     backgroundColor: 'rgba(0,0,0,0.55)',

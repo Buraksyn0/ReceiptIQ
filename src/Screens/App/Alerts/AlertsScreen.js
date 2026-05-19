@@ -122,7 +122,7 @@ function AlertsScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView
-        contentContainerStyle={[styles.container, { paddingBottom: 50 }]}
+        contentContainerStyle={[styles.container, { paddingBottom: vs(40) }]}
         showsVerticalScrollIndicator={false}
       >
         {/* HEADER */}

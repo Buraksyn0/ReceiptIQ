@@ -11,3 +11,4 @@ from app.models.category_feedback import CategoryFeedback  # noqa
 from app.models.recurring import RecurringTransaction  # noqa
 from app.models.savings_goal import SavingsGoal  # noqa
 from app.models.tag import Tag, ReceiptTag  # noqa
+from app.models.password_reset import PasswordResetCode  # noqa

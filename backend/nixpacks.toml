@@ -1,2 +1,5 @@
 [phases.setup]
 aptPkgs = ["tesseract-ocr", "tesseract-ocr-tur", "tesseract-ocr-eng"]
+
+[phases.build]
+cmds = ["mkdir -p /data/storage"]

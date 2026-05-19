@@ -17,6 +17,7 @@ import { useLanguage } from '../../../Context/LanguageContext';
 import { useCurrency } from '../../../Context/CurrencyContext';
 import { useDateFormat } from '../../../Context/DateFormatContext';
 import { formatTR, formatShortTR } from '../../../Constants/Formatters';
+import { useTabBarPadding } from '../../../Constants/TabBar';
 
 function DashboardScreen({ navigation }) {
   // 1. STATE & CONTEXT
@@ -26,6 +27,7 @@ function DashboardScreen({ navigation }) {
   const { currencySymbol, convertAmount } = useCurrency();
   const { formatDate } = useDateFormat();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const tabBarPadding = useTabBarPadding();
 
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -369,7 +371,7 @@ function DashboardScreen({ navigation }) {
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderItem}
           ListHeaderComponent={renderHeader}
-          contentContainerStyle={styles.container}
+          contentContainerStyle={[styles.container, { paddingBottom: tabBarPadding }]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <Text style={{ textAlign: 'center', marginTop: 20, color: colors.textSecondary }}>{t.noTransactions}</Text>

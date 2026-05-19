@@ -39,3 +39,6 @@ apscheduler>=3.10.0
 
 # === HTTP İstemci (push bildirim için) ===
 httpx>=0.27.0
+
+# === Rate Limiting ===
+slowapi>=0.1.9

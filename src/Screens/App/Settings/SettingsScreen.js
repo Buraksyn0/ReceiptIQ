@@ -3,12 +3,11 @@ import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import {
   View, Text, SafeAreaView, TouchableOpacity, ScrollView,
-  Switch, Alert, Modal, Pressable, TextInput, KeyboardAvoidingView, Platform, Image, Dimensions,
+  Switch, Alert, Modal, Pressable, TextInput, KeyboardAvoidingView, Platform, Image,
+  useWindowDimensions,
 } from 'react-native';
-
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 import { Ionicons } from '@expo/vector-icons';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useTabBarPadding } from '../../../Constants/TabBar';
 import Colors from '../../../Constants/Colors';
 import { apiUrl, API_BASE_URL } from '../../../Constants/Config';
 import { CURRENCIES, getCurrencyName } from '../../../Constants/Currencies';
@@ -82,7 +81,7 @@ function BottomSheetPicker({ visible, onClose, title, items, currentCode, onSele
             }}>
               {title}
             </Text>
-            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: SCREEN_HEIGHT * 0.55 }}>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: screenHeight * 0.55 }}>
               {items.map((item) => {
                 const isSelected = currentCode === item.code;
                 return (
@@ -737,7 +736,8 @@ function ChangePasswordModal({ visible, onClose, userEmail, userToken, t, colors
 }
 
 function SettingsScreen({ navigation }) {
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarPadding = useTabBarPadding();
+  const { height: screenHeight } = useWindowDimensions();
   const { user, userToken, logout, refreshUser } = useContext(AuthContext);
   const { isDarkMode, colors } = useTheme();
   const { t, language } = useLanguage();
@@ -890,7 +890,7 @@ function SettingsScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView
-        contentContainerStyle={[styles.container, { paddingBottom: tabBarHeight + 50 }]}
+        contentContainerStyle={[styles.container, { paddingBottom: tabBarPadding }]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.pageTitle}>{t.settings}</Text>
