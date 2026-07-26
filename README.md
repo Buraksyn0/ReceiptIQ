@@ -49,13 +49,25 @@ The system is a layered client–server application with a React Native mobile c
 
 ## Screenshots
 
-<!-- Add real screenshots here. Drop the images in a /docs or /screenshots folder and update the paths below. -->
+<table>
+  <tr>
+    <td align="center"><img src="screenshots/01-dashboard.png" width="220"><br><sub><b>Dashboard</b></sub></td>
+    <td align="center"><img src="screenshots/02-scan.png" width="220"><br><sub><b>Receipt Scan</b></sub></td>
+    <td align="center"><img src="screenshots/03-ocr-review.png" width="220"><br><sub><b>OCR Review</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/04-ai-assistant.png" width="220"><br><sub><b>AI Assistant</b></sub></td>
+    <td align="center"><img src="screenshots/05-budget.png" width="220"><br><sub><b>Budget Plan</b></sub></td>
+    <td align="center"><img src="screenshots/06-savings-goal.png" width="220"><br><sub><b>Savings Goal</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="screenshots/07-transactions.png" width="220"><br><sub><b>Transactions &amp; Search</b></sub></td>
+    <td align="center"><img src="screenshots/08-weekly-summary.png" width="220"><br><sub><b>Weekly Summary</b></sub></td>
+    <td align="center"><img src="screenshots/09-notifications.png" width="220"><br><sub><b>Alerts &amp; Anomaly Detection</b></sub></td>
+  </tr>
+</table>
 
-| Home | Receipt Scan | OCR Review | Reports |
-|------|--------------|------------|---------|
-| _add screenshot_ | _add screenshot_ | _add screenshot_ | _add screenshot_ |
-
-> Tip: a short demo GIF or a 30-second video link here makes the biggest impression on visitors.
+> A short demo GIF or a 30-second video here makes the biggest impression — consider adding one later.
 
 ## Architecture
 
@@ -115,7 +127,7 @@ uvicorn app.main:app --reload   # start the API
 ### Mobile app
 
 ```bash
-cd mobile
+# from the project root (the React Native app source lives in ./src)
 npm install
 npx expo start                  # open in Expo Go, or run on a simulator
 ```
@@ -140,7 +152,7 @@ On real receipt images, Google Cloud Vision API achieved a **79–83% confidence
 
 ## Roadmap
 
-- [ ] Add screenshots and a demo video
+- [ ] Add a short demo video / GIF
 - [ ] Publish a hosted demo / TestFlight–Play Store build
 - [ ] Expand test coverage for the OCR and categorization pipeline
 
