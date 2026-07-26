@@ -150,11 +150,6 @@ QDRANT_API_KEY=your-qdrant-key
 
 On real receipt images, Google Cloud Vision API achieved a **79–83% confidence score**, extracting **27–58 lines** of text per receipt — clearly outperforming Tesseract, which is why Vision is used as the primary provider and Tesseract as a fallback.
 
-## Roadmap
-
-- [ ] Add a short demo video / GIF
-- [ ] Publish a hosted demo / TestFlight–Play Store build
-- [ ] Expand test coverage for the OCR and categorization pipeline
 
 ## Author
 
