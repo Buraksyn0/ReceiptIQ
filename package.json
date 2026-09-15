@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "jest"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
@@ -41,5 +42,12 @@
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "jest": "~29.7.0",
+    "jest-expo": "~54.0.18"
+  },
+  "jest": {
+    "preset": "jest-expo"
+  }
 }
