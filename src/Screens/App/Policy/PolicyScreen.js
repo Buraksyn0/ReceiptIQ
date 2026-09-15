@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../Context/ThemeContext';
 import { useLanguage } from '../../../Context/LanguageContext';
@@ -8,31 +9,39 @@ import { s, vs, ms } from '../../../Constants/Responsive';
 const PRIVACY_CONTENT = {
   tr: {
     title: 'Gizlilik Politikası',
-    lastUpdated: 'Son güncelleme: Mayıs 2026',
+    lastUpdated: 'Son güncelleme: Eylül 2026',
     sections: [
       {
-        heading: '1. Toplanan Veriler',
-        body: 'ReceiptIQ; ad, e-posta adresi, şehir bilgisi ve fiş/harcama verilerini toplar. Bu veriler yalnızca uygulamanın işlevselliği için kullanılır.',
+        heading: '1. Veri Sorumlusu Kimliği',
+        body: '6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verileriniz veri sorumlusu sıfatıyla Burak Sayan tarafından işlenmektedir. İletişim: receiptiq.destek@gmail.com',
       },
       {
-        heading: '2. Verilerin Kullanımı',
-        body: 'Toplanan veriler; harcama analizleri sunmak, bütçe takibi yapmak ve kullanıcı deneyimini kişiselleştirmek amacıyla kullanılır. Verileriniz üçüncü taraflarla paylaşılmaz veya satılmaz.',
+        heading: '2. Toplanan Veriler',
+        body: 'ReceiptIQ; ad, e-posta adresi, şehir bilgisi, profil fotoğrafı ve fiş/harcama verilerinizi (fiş fotoğrafları ile bu fotoğraflardan çıkarılan tutar, tarih ve mağaza bilgileri dahil) toplar. Bu veriler yalnızca uygulamanın işlevselliğini sağlamak için kullanılır.',
       },
       {
-        heading: '3. Veri Güvenliği',
+        heading: '3. Verilerin Kullanımı ve Aktarımı',
+        body: 'Toplanan veriler; harcama analizleri sunmak, bütçe takibi yapmak ve kullanıcı deneyimini kişiselleştirmek amacıyla kullanılır. Uygulamanın çalışabilmesi için bazı veriler, hizmet aldığımız şu üçüncü taraf servis sağlayıcılarla paylaşılır: fiş fotoğraflarınız metne dönüştürülmesi için Google Cloud Vision ile, finansal asistan (sohbet) özelliğini kullandığınızda ilgili harcama verileriniz yapay zekâ destekli yanıt üretmek amacıyla OpenAI ile, akıllı arama/öneri özellikleri için harcama verileriniz Qdrant Cloud\'da, e-posta bildirimleriniz (örneğin şifre sıfırlama kodları) SendGrid üzerinden paylaşılır/işlenir. Verileriniz bu hizmet sağlayıcılar dışında hiçbir üçüncü tarafla pazarlama amacıyla paylaşılmaz ve asla satılmaz.',
+      },
+      {
+        heading: '4. Kişisel Veri Toplamanın Yöntemi ve Hukuki Sebebi',
+        body: 'Kişisel verileriniz, ReceiptIQ uygulamasını kullanmanız sırasında elektronik ortamda, doğrudan sizin tarafınızdan girilmesi ya da fiş taraması gibi işlemler yoluyla otomatik olarak toplanır. Verileriniz, KVKK\'nın 5. maddesinde belirtilen "bir sözleşmenin kurulması veya ifasıyla doğrudan doğruya ilgili olması" ve "ilgili kişinin temel hak ve özgürlüklerine zarar vermemek kaydıyla veri sorumlusunun meşru menfaati" hukuki sebeplerine dayanılarak işlenmektedir.',
+      },
+      {
+        heading: '5. Veri Güvenliği',
         body: 'Verileriniz şifrelenmiş bağlantılar (HTTPS) üzerinden iletilir ve güvenli sunucularda saklanır. Şifreler hiçbir zaman düz metin olarak tutulmaz.',
       },
       {
-        heading: '4. Veri Saklama',
+        heading: '6. Veri Saklama',
         body: 'Hesabınızı sildiğinizde tüm kişisel verileriniz ve fişleriniz kalıcı olarak silinir. Bu işlem geri alınamaz.',
       },
       {
-        heading: '5. KVKK Hakları',
-        body: 'Kişisel Verilerin Korunması Kanunu kapsamında verilerinize erişme, düzeltme ve silme hakkına sahipsiniz. Talepleriniz için uygulama üzerinden bizimle iletişime geçebilirsiniz.',
+        heading: '7. KVKK Kapsamındaki Haklarınız',
+        body: 'KVKK\'nın 11. maddesi uyarınca; kişisel verilerinizin işlenip işlenmediğini öğrenme, işlenmişse buna ilişkin bilgi talep etme, işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme, yurt içinde veya yurt dışında verilerin aktarıldığı üçüncü kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini isteme, KVKK\'nın 7. maddesindeki şartlar çerçevesinde silinmesini veya yok edilmesini isteme, düzeltme ve silme işlemlerinin verilerin aktarıldığı üçüncü kişilere bildirilmesini isteme, işlenen verilerin münhasıran otomatik sistemlerle analiz edilmesi suretiyle aleyhinize bir sonucun ortaya çıkmasına itiraz etme ve kanuna aykırı işlenme nedeniyle zarara uğramanız hâlinde zararın giderilmesini talep etme haklarına sahipsiniz.',
       },
       {
-        heading: '6. İletişim',
-        body: 'Gizlilik politikamıza ilişkin sorularınız için: support@receiptiq.app',
+        heading: '8. İletişim',
+        body: 'Gizlilik politikamıza ilişkin sorularınız için: receiptiq.destek@gmail.com',
       },
     ],
   },
@@ -42,11 +51,11 @@ const PRIVACY_CONTENT = {
     sections: [
       {
         heading: '1. Data We Collect',
-        body: 'ReceiptIQ collects your name, email address, city, and receipt/spending data. This information is used solely to provide app functionality.',
+        body: 'ReceiptIQ collects your name, email address, city, profile photo, and receipt/spending data (including receipt photos and the amount, date, and merchant information extracted from them). This information is used solely to provide app functionality.',
       },
       {
         heading: '2. How We Use Your Data',
-        body: 'Collected data is used to provide spending analytics, budget tracking, and personalized experiences. Your data is never shared with or sold to third parties.',
+        body: 'Collected data is used to provide spending analytics, budget tracking, and personalized experiences. To operate the app, some data is shared with the following third-party service providers: your receipt photos are shared with Google Cloud Vision for text extraction (OCR); when you use the financial assistant (chat) feature, relevant spending data is shared with OpenAI to generate AI-powered responses; your spending data is stored in Qdrant Cloud (vector database) for smart search features; your email notifications (e.g. password reset codes) are sent via SendGrid. Your data is never shared with any other third party for marketing purposes and is never sold.',
       },
       {
         heading: '3. Data Security',
@@ -62,7 +71,7 @@ const PRIVACY_CONTENT = {
       },
       {
         heading: '6. Contact',
-        body: 'For questions about our privacy policy: support@receiptiq.app',
+        body: 'For questions about our privacy policy: receiptiq.destek@gmail.com',
       },
     ],
   },
@@ -72,11 +81,11 @@ const PRIVACY_CONTENT = {
     sections: [
       {
         heading: '1. Erhobene Daten',
-        body: 'ReceiptIQ erfasst Ihren Namen, Ihre E-Mail-Adresse, Ihren Wohnort sowie Beleg- und Ausgabendaten. Diese Informationen werden ausschließlich zur Bereitstellung der App-Funktionalität verwendet.',
+        body: 'ReceiptIQ erfasst Ihren Namen, Ihre E-Mail-Adresse, Ihren Wohnort, Ihr Profilbild sowie Beleg- und Ausgabendaten (einschließlich Belegfotos und der daraus extrahierten Beträge, Daten und Händlerinformationen). Diese Informationen werden ausschließlich zur Bereitstellung der App-Funktionalität verwendet.',
       },
       {
         heading: '2. Datenverwendung',
-        body: 'Die erhobenen Daten werden zur Ausgabenanalyse, Budgetverfolgung und Personalisierung verwendet. Ihre Daten werden nicht an Dritte weitergegeben oder verkauft.',
+        body: 'Die erhobenen Daten werden zur Ausgabenanalyse, Budgetverfolgung und Personalisierung verwendet. Für den Betrieb der App werden einige Daten mit folgenden Drittanbietern geteilt: Ihre Belegfotos werden zur Texterkennung (OCR) an Google Cloud Vision weitergegeben; bei Nutzung des Finanzassistenten (Chat) werden relevante Ausgabendaten zur Erstellung KI-gestützter Antworten an OpenAI weitergegeben; Ihre Ausgabendaten werden für intelligente Suchfunktionen in Qdrant Cloud (Vektordatenbank) gespeichert; Ihre E-Mail-Benachrichtigungen (z. B. Codes zum Zurücksetzen des Passworts) werden über SendGrid versendet. Ihre Daten werden niemals zu Marketingzwecken an Dritte weitergegeben oder verkauft.',
       },
       {
         heading: '3. Datensicherheit',
@@ -92,7 +101,7 @@ const PRIVACY_CONTENT = {
       },
       {
         heading: '6. Kontakt',
-        body: 'Bei Fragen zu unserer Datenschutzrichtlinie: support@receiptiq.app',
+        body: 'Bei Fragen zu unserer Datenschutzrichtlinie: receiptiq.destek@gmail.com',
       },
     ],
   },
@@ -102,11 +111,11 @@ const PRIVACY_CONTENT = {
     sections: [
       {
         heading: '1. Données collectées',
-        body: 'ReceiptIQ collecte votre nom, adresse e-mail, ville et données de reçus/dépenses. Ces informations sont utilisées uniquement pour fournir les fonctionnalités de l\'application.',
+        body: 'ReceiptIQ collecte votre nom, adresse e-mail, ville, photo de profil et données de reçus/dépenses (y compris les photos de reçus et les montants, dates et informations de commerçant qui en sont extraits). Ces informations sont utilisées uniquement pour fournir les fonctionnalités de l\'application.',
       },
       {
         heading: '2. Utilisation des données',
-        body: 'Les données collectées sont utilisées pour fournir des analyses de dépenses, un suivi budgétaire et des expériences personnalisées. Vos données ne sont jamais partagées ni vendues à des tiers.',
+        body: 'Les données collectées sont utilisées pour fournir des analyses de dépenses, un suivi budgétaire et des expériences personnalisées. Pour faire fonctionner l\'application, certaines données sont partagées avec les prestataires tiers suivants : vos photos de reçus sont partagées avec Google Cloud Vision pour l\'extraction de texte (OCR) ; lorsque vous utilisez l\'assistant financier (chat), les données de dépenses concernées sont partagées avec OpenAI pour générer des réponses basées sur l\'IA ; vos données de dépenses sont stockées dans Qdrant Cloud (base de données vectorielle) pour les fonctions de recherche intelligente ; vos notifications par e-mail (par exemple, les codes de réinitialisation de mot de passe) sont envoyées via SendGrid. Vos données ne sont jamais partagées avec un autre tiers à des fins marketing ni vendues.',
       },
       {
         heading: '3. Sécurité des données',
@@ -122,7 +131,7 @@ const PRIVACY_CONTENT = {
       },
       {
         heading: '6. Contact',
-        body: 'Pour toute question sur notre politique de confidentialité : support@receiptiq.app',
+        body: 'Pour toute question sur notre politique de confidentialité : receiptiq.destek@gmail.com',
       },
     ],
   },
@@ -132,11 +141,11 @@ const PRIVACY_CONTENT = {
     sections: [
       {
         heading: '1. Собираемые данные',
-        body: 'ReceiptIQ собирает ваше имя, адрес электронной почты, город и данные о чеках/расходах. Эта информация используется исключительно для обеспечения функциональности приложения.',
+        body: 'ReceiptIQ собирает ваше имя, адрес электронной почты, город, фото профиля и данные о чеках/расходах (включая фотографии чеков и извлечённые из них суммы, даты и информацию о продавце). Эта информация используется исключительно для обеспечения функциональности приложения.',
       },
       {
         heading: '2. Использование данных',
-        body: 'Собранные данные используются для анализа расходов, отслеживания бюджета и персонализации. Ваши данные никогда не передаются третьим лицам и не продаются.',
+        body: 'Собранные данные используются для анализа расходов, отслеживания бюджета и персонализации. Для работы приложения некоторые данные передаются следующим сторонним поставщикам услуг: фотографии чеков передаются в Google Cloud Vision для распознавания текста (OCR); при использовании финансового ассистента (чата) соответствующие данные о расходах передаются в OpenAI для генерации ответов на основе ИИ; данные о расходах хранятся в Qdrant Cloud (векторная база данных) для функций умного поиска; уведомления по электронной почте (например, коды сброса пароля) отправляются через SendGrid. Ваши данные никогда не передаются третьим лицам в маркетинговых целях и не продаются.',
       },
       {
         heading: '3. Безопасность данных',
@@ -152,7 +161,7 @@ const PRIVACY_CONTENT = {
       },
       {
         heading: '6. Контакты',
-        body: 'По вопросам политики конфиденциальности: support@receiptiq.app',
+        body: 'По вопросам политики конфиденциальности: receiptiq.destek@gmail.com',
       },
     ],
   },
@@ -185,7 +194,7 @@ const TERMS_CONTENT = {
       },
       {
         heading: '6. İletişim',
-        body: 'Kullanım koşullarına ilişkin sorularınız için: support@receiptiq.app',
+        body: 'Kullanım koşullarına ilişkin sorularınız için: receiptiq.destek@gmail.com',
       },
     ],
   },
@@ -215,7 +224,7 @@ const TERMS_CONTENT = {
       },
       {
         heading: '6. Contact',
-        body: 'For questions about our terms of service: support@receiptiq.app',
+        body: 'For questions about our terms of service: receiptiq.destek@gmail.com',
       },
     ],
   },
@@ -245,7 +254,7 @@ const TERMS_CONTENT = {
       },
       {
         heading: '6. Kontakt',
-        body: 'Bei Fragen zu unseren Nutzungsbedingungen: support@receiptiq.app',
+        body: 'Bei Fragen zu unseren Nutzungsbedingungen: receiptiq.destek@gmail.com',
       },
     ],
   },
@@ -275,7 +284,7 @@ const TERMS_CONTENT = {
       },
       {
         heading: '6. Contact',
-        body: 'Pour toute question sur nos conditions d\'utilisation : support@receiptiq.app',
+        body: 'Pour toute question sur nos conditions d\'utilisation : receiptiq.destek@gmail.com',
       },
     ],
   },
@@ -305,7 +314,7 @@ const TERMS_CONTENT = {
       },
       {
         heading: '6. Контакты',
-        body: 'По вопросам об условиях использования: support@receiptiq.app',
+        body: 'По вопросам об условиях использования: receiptiq.destek@gmail.com',
       },
     ],
   },
@@ -360,7 +369,7 @@ function PolicyScreen({ navigation, route }) {
           backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
         }}>
           <Text style={{ fontSize: ms(12), color: colors.textSecondary, textAlign: 'center', lineHeight: vs(18) }}>
-            ReceiptIQ © 2026 — support@receiptiq.app
+            ReceiptIQ © 2026 — receiptiq.destek@gmail.com
           </Text>
         </View>
       </ScrollView>
