@@ -28,9 +28,13 @@ async def lifespan(app: FastAPI):
     stop_scheduler()
 
 
+IS_PRODUCTION = settings.ENVIRONMENT == "production"
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    docs_url=None if IS_PRODUCTION else "/docs",
+    redoc_url=None if IS_PRODUCTION else "/redoc",
     lifespan=lifespan,
 )
 
