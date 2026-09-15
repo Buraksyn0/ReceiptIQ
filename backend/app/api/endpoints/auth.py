@@ -63,7 +63,7 @@ async def forgot_password(
     user = result.scalars().first()
     # Kullanıcı bulunamasa bile aynı yanıtı döndür (güvenlik)
     if not user:
-        return {"message": "Eğer bu e-posta kayıtlıysa, kod gönderildi."}
+        return {"message": "Eğer bu e-posta kayıtlıysa, sıfırlama kodu gönderildi."}
 
     # Mevcut kodları temizle
     await db.execute(
@@ -108,7 +108,9 @@ async def forgot_password(
 
 
 @router.post("/reset-password")
+@limiter.limit("5/minute")
 async def reset_password(
+    request: Request,
     body: ResetPasswordRequest,
     db: AsyncSession = Depends(deps.get_db),
 ):

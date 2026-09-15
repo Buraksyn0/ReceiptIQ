@@ -32,7 +32,10 @@ def _next_date_after(current: datetime, frequency: str) -> datetime:
     elif frequency == "weekly":
         return current + timedelta(weeks=1)
     elif frequency == "yearly":
-        return current.replace(year=current.year + 1)
+        year = current.year + 1
+        max_day = calendar.monthrange(year, current.month)[1]
+        day = min(current.day, max_day)
+        return current.replace(year=year, day=day)
     else:  # monthly
         month = current.month + 1
         year = current.year
