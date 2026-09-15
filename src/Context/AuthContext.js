@@ -92,6 +92,8 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         setUserToken(token);
         await fetchUser(token);
+        // Push token'ı tazele — uygulama yeniden açıldığında da güncel kalsın
+        registerPushToken(token);
       }
     } catch (e) {
       console.log('AuthContext kasa okuma hata:', e?.message);

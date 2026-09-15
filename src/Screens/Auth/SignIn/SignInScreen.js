@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react'; 
-import { View, Text, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../../Constants/Colors';
 import { apiUrl } from '../../../Constants/Config';
@@ -22,8 +23,6 @@ function SignInScreen({ navigation, route }) {
   const welcomeMessage = route.params?.name ? `, ${route.params.name}` : " Back";
 
   const handleLogin = async () => {
-    console.log("1. Butona basıldı, giriş deneniyor...");
-
     if (!email || !password) {
       alert("Email ve şifre boş olamaz!");
       return;
@@ -45,15 +44,13 @@ function SignInScreen({ navigation, route }) {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("2. BAŞARILI! Token kasaya gönderiliyor...");
         // ALTIN VURUŞ: Token'ı beynin içine (SecureStore'a) atıyoruz!
-        login(data.access_token); 
+        login(data.access_token);
       } else {
         alert("Giriş başarısız: " + (data.detail || "Hatalı email veya şifre"));
       }
 
     } catch (error) {
-      console.log("!!! BAĞLANTI HATASI !!!", error.message);
       alert("Sunucuya bağlanılamadı.");
     }
   };

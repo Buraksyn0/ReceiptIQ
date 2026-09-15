@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../../Constants/Colors';
 import { apiUrl } from '../../../Constants/Config';
@@ -19,8 +20,6 @@ function SignUpScreen({ navigation }) {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleSignUp = async () => {
-    console.log("1. Kayıt butonu tetiklendi.");
-
     // 1. Temel Validasyonlar (Kapı Koruması)
     if (!fullName || !email || !password || !confirmPassword) {
       alert("Lütfen tüm alanları doldur!");
@@ -43,8 +42,6 @@ function SignUpScreen({ navigation }) {
     }
 
     try {
-      console.log("2. Backend'e JSON paketi gönderiliyor...");
-      
       // Tek merkezden URL yönetimi — Constants/Config.js
       const url = apiUrl('/auth/signup');
 
@@ -60,23 +57,18 @@ function SignUpScreen({ navigation }) {
         }),
       });
 
-      console.log("3. Backend'den cevap geldi! Statü:", response.status);
       const data = await response.json();
 
       if (response.ok) {
-        console.log("BAŞARILI KAYIT:", data);
         alert("Kayıt başarılı! Şimdi giriş yapabilirsin.");
         // Başarılıysa, adamın ismini de alarak Login ekranına uçur
         navigation.navigate('SignIn', { name: fullName });
       } else {
-        console.log("HATA VERİSİ:", data);
         // Backend'den gelen spesifik hatayı ekrana bas (Örn: "Bu email zaten kayıtlı")
         alert("Kayıt başarısız: " + (data.detail || JSON.stringify(data)));
       }
 
     } catch (error) {
-      console.log("!!! BAĞLANTI HATASI !!!");
-      console.error("Detay:", error.message);
       alert("Sunucuya bağlanılamadı. Backend'in açık olduğundan emin ol!");
     }
   };
