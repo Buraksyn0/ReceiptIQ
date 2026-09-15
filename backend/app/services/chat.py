@@ -34,8 +34,17 @@ Kurallar:
 - Tutar bilgilerinde ₺ sembolü kullan
 - Tarih bilgilerini Türkçe formatla (15 Ocak 2026 gibi)
 - Kategori adları Türkçe göster (food→Gıda, transport→Ulaşım vb.)
-- Finansal veri yoksa "Bu konuda henüz yeterli veri bulunamadı." de
+- Az veri olsa bile (1-2 fiş) elindeki veriyi kullanarak somut bir yanıt ver; sadece HİÇ veri yoksa "Bu konuda henüz yeterli veri bulunamadı." de
 - Kullanıcıya bütçesini aşıyorsa veya fazla harcıyorsa nazikçe uyar
+"""
+
+OPENING_INSIGHT_PROMPT = """Sen ReceiptIQ'nun finans asistanısın. Kullanıcı sohbet ekranını yeni açtı, henüz bir şey sormadı.
+Aşağıdaki gerçek verilerine bakarak, kullanıcıyı sohbete davet eden, TEK CÜMLELİK, sıcak ve spesifik bir açılış mesajı yaz.
+Kurallar:
+- Türkçe yaz, en fazla 2 kısa cümle
+- Verideki somut bir rakam/kategori/mağaza adına değin (genel geçme)
+- Soru sorarak bitir, kullanıcıyı sohbete davet et
+- En fazla 1 emoji kullan
 """
 
 CATEGORY_LABELS = {
@@ -209,6 +218,44 @@ def _build_sources_text(relevant: list[dict]) -> str:
         amount_str = f" · ₺{amount}" if amount else ""
         lines.append(f"{merchant} ({date_str}{amount_str})")
     return "\n".join(lines)
+
+
+async def generate_opening_insight(db: AsyncSession, user_id: uuid.UUID) -> str:
+    """
+    Sohbet ekranı açılır açılmaz gösterilecek, kullanıcının gerçek verisine
+    dayanan kişisel açılış mesajını üretir. Hiç fiş yoksa GPT'ye hiç gitmeden
+    sabit bir onboarding mesajı döner (hız + maliyet için).
+    """
+    from app.models.receipt import Receipt
+
+    count_result = await db.execute(
+        select(func.count(Receipt.id)).where(Receipt.user_id == user_id)
+    )
+    receipt_count = count_result.scalar() or 0
+
+    if receipt_count == 0:
+        return "Henüz hiç fiş eklemedin. İlk fişini tarat, harcamalarını birlikte takip etmeye başlayalım! 📸"
+
+    analytics_context = await _build_analytics_context(db, user_id)
+
+    try:
+        from openai import AsyncOpenAI
+        from app.core.config import settings
+
+        client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": OPENING_INSIGHT_PROMPT + f"\n\n{analytics_context}"},
+                {"role": "user", "content": "Açılış mesajını yaz."},
+            ],
+            temperature=0.5,
+            max_tokens=100,
+        )
+        return response.choices[0].message.content or "Merhaba! Harcamalarınla ilgili bir şey sormak ister misin?"
+    except Exception as e:
+        log.error("Opening insight GPT hatası: %s", e)
+        return "Merhaba! Harcamalarınla ilgili bir şey sormak ister misin?"
 
 
 async def chat_with_receipts(

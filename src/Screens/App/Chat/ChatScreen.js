@@ -37,6 +37,7 @@ function ChatScreen() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [insightLoading, setInsightLoading] = useState(true);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -52,6 +53,28 @@ function ChatScreen() {
 
     return () => { onShow.remove(); onHide.remove(); };
   }, []);
+
+  // Sohbet açılınca kullanıcının gerçek verisine dayanan kişisel açılış mesajını çek
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(apiUrl('/chat/insight'), {
+          headers: { Authorization: `Bearer ${userToken}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && data.message) {
+          setMessages(prev => prev.map(m => (m.id === '0' ? { ...m, text: data.message } : m)));
+        }
+      } catch (e) {
+        // Sessizce yut — statik karşılama mesajına düşülecek
+      } finally {
+        if (!cancelled) setInsightLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [userToken]);
 
   const sendMessage = useCallback(async (question) => {
     const text = (question || input).trim();
@@ -134,20 +157,26 @@ function ChatScreen() {
                   <Text style={{ color: '#fff', fontWeight: '800', fontSize: ms(13), letterSpacing: 0.5 }}>R</Text>
                 </View>
                 <View style={[styles.aiMessageContainer, { marginBottom: 0 }]}>
-                <Text style={styles.aiMessageText}>{mainText ?? t.chatWelcome}</Text>
-                {sources.length > 0 && (
-                  <View style={styles.sourcesSection}>
-                    <View style={styles.sourcesHeader}>
-                      <Ionicons name="receipt-outline" size={12} color={Colors.primary} />
-                      <Text style={styles.sourcesHeaderText}>İLGİLİ FİŞLER</Text>
-                    </View>
-                    {sources.map((src, i) => (
-                      <View key={i} style={styles.sourceChip}>
-                        <Ionicons name="document-text-outline" size={11} color={Colors.primary} />
-                        <Text style={styles.sourceChipText}>{src}</Text>
+                {msg.id === '0' && insightLoading ? (
+                  <ActivityIndicator size="small" color={Colors.primary} />
+                ) : (
+                  <>
+                    <Text style={styles.aiMessageText}>{mainText ?? t.chatWelcome}</Text>
+                    {sources.length > 0 && (
+                      <View style={styles.sourcesSection}>
+                        <View style={styles.sourcesHeader}>
+                          <Ionicons name="receipt-outline" size={12} color={Colors.primary} />
+                          <Text style={styles.sourcesHeaderText}>İLGİLİ FİŞLER</Text>
+                        </View>
+                        {sources.map((src, i) => (
+                          <View key={i} style={styles.sourceChip}>
+                            <Ionicons name="document-text-outline" size={11} color={Colors.primary} />
+                            <Text style={styles.sourceChipText}>{src}</Text>
+                          </View>
+                        ))}
                       </View>
-                    ))}
-                  </View>
+                    )}
+                  </>
                 )}
                 </View>
               </View>

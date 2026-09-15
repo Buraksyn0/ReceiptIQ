@@ -31,6 +31,25 @@ class ChatResponse(BaseModel):
     answer: str
 
 
+class InsightResponse(BaseModel):
+    message: str
+
+
+@router.get("/insight", response_model=InsightResponse)
+async def opening_insight(
+    db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """
+    Sohbet ekranı açıldığında gösterilecek, kullanıcının gerçek verisine
+    dayanan kişisel açılış mesajı.
+    """
+    from app.services.chat import generate_opening_insight
+
+    message = await generate_opening_insight(db=db, user_id=current_user.id)
+    return InsightResponse(message=message)
+
+
 @router.post("/", response_model=ChatResponse)
 async def chat(
     payload: ChatRequest,
