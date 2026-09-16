@@ -184,6 +184,7 @@ export default function SavingsGoalChatScreen({ navigation }) {
             multiline
           />
           <TouchableOpacity
+            testID="savings-chat-send-button"
             style={[styles.sendButton, (!input.trim() || loading) && { opacity: 0.4 }]}
             onPress={() => sendMessage()}
             disabled={!input.trim() || loading}

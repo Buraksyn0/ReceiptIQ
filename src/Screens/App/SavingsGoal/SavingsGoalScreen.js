@@ -413,7 +413,7 @@ export default function SavingsGoalScreen({ navigation }) {
 
       {/* FAB BUTONLARI */}
       <View style={styles.fabGroup}>
-        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('SavingsGoalChat')}>
+        <TouchableOpacity testID="savings-goal-chat-fab" style={styles.fab} onPress={() => navigation.navigate('SavingsGoalChat')}>
           <Ionicons name="chatbubble-ellipses" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
