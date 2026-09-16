@@ -243,7 +243,7 @@ function RecurringScreen({ navigation }) {
           <Ionicons name="chevron-back" size={24} color={colors.textMain} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Tekrarlayan İşlemler</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={() => setModalVisible(true)}>
+        <TouchableOpacity testID="open-add-recurring-modal" style={styles.addBtn} onPress={() => setModalVisible(true)}>
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
