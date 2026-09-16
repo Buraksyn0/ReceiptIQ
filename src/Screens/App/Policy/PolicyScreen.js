@@ -335,6 +335,7 @@ function PolicyScreen({ navigation, route }) {
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', padding: s(20), paddingBottom: vs(12) }}>
         <TouchableOpacity
+          testID="policy-back-button"
           onPress={() => navigation.goBack()}
           style={{ backgroundColor: colors.card, padding: s(8), borderRadius: s(12), marginRight: s(16) }}
         >

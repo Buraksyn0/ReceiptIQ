@@ -925,7 +925,7 @@ function SettingsScreen({ navigation }) {
               </Text>
             ) : null}
           </View>
-          <TouchableOpacity style={styles.editIcon} onPress={() => {
+          <TouchableOpacity testID="edit-profile-button" style={styles.editIcon} onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             setEditProfileVisible(true);
           }}>
