@@ -177,7 +177,7 @@ function BudgetScreen({ navigation }) {
               <Ionicons name="trash-outline" size={22} color="#FF5252" />
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.addBtn} onPress={() => setIsModalVisible(true)}>
+          <TouchableOpacity testID="open-add-budget-modal" style={styles.addBtn} onPress={() => setIsModalVisible(true)}>
             <Ionicons name="add" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
