@@ -83,6 +83,12 @@ async def check_and_notify_budget(
     if total_spent < limit:
         return  # Limit aşılmadı
 
+    # Mesaj metninde geçen etiketi ÖNCEDEN hesapla — tekrar kontrolü de
+    # aynı etiketle arama yapmalı (mesaj Türkçe etiketle yazılıyor, ham
+    # kategori koduyla değil — aksi halde büyük/küçük harf uyuşmazlığından
+    # eşleşme hiç bulunamaz ve tekrar önleme çalışmaz).
+    cat_label = _CATEGORY_LABELS.get(category, category)  # ID yoksa orijinali kullan
+
     # Bu ay için zaten okunmamış budget_exceeded bildirimi var mı?
     existing_result = await db.execute(
         select(Notification).where(
@@ -90,7 +96,7 @@ async def check_and_notify_budget(
             Notification.notification_type == "budget_exceeded",
             Notification.is_read == False,
             Notification.created_at >= month_start,
-            Notification.message.contains(category),
+            Notification.message.contains(cat_label),
         )
     )
     existing = existing_result.scalars().first()
@@ -99,7 +105,6 @@ async def check_and_notify_budget(
 
     # Bütçe aşıldı → bildirim oluştur
     overflow = total_spent - limit
-    cat_label = _CATEGORY_LABELS.get(category, category)  # ID yoksa orijinali kullan
     notif = Notification(
         user_id=user_id,
         notification_type="budget_exceeded",
