@@ -239,6 +239,7 @@ function ScanScreen() {
       <SafeAreaView style={styles.bottomOverlay}>
         <View style={styles.controls}>
           <TouchableOpacity
+            testID="scan-gallery-button"
             style={styles.sideBtn}
             onPress={handlePickFromGallery}
             disabled={busy}
