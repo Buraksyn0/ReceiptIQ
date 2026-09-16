@@ -164,7 +164,11 @@ export default function TagsScreen({ navigation }) {
               <TouchableOpacity onPress={() => openEditModal(tag)} style={styles.actionBtn}>
                 <Ionicons name="pencil-outline" size={17} color={Colors.primary} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => deleteTag(tag)} style={styles.actionBtn}>
+              <TouchableOpacity
+                testID={`delete-tag-${tag.id}`}
+                onPress={() => deleteTag(tag)}
+                style={styles.actionBtn}
+              >
                 <Ionicons name="trash-outline" size={17} color={colors.placeholder} />
               </TouchableOpacity>
             </View>
