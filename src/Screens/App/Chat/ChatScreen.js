@@ -1,8 +1,9 @@
 import React, { useState, useRef, useContext, useCallback, useMemo, useEffect } from 'react';
 import {
-  View, Text, SafeAreaView, TextInput, TouchableOpacity,
+  View, Text, TextInput, TouchableOpacity,
   ScrollView, Platform, ActivityIndicator, KeyboardAvoidingView, Keyboard,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../../Constants/Colors';
 import { useTabBarPadding, TAB_HEIGHT, TAB_GAP } from '../../../Constants/TabBar';

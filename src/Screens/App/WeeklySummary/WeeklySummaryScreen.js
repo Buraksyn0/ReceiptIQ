@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import {
-  View, Text, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../../Context/ThemeContext';
 import { useLanguage } from '../../../Context/LanguageContext';

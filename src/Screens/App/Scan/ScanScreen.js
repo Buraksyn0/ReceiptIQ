@@ -2,7 +2,6 @@ import React, { useState, useRef, useContext, useEffect } from 'react';
 import {
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
@@ -11,6 +10,7 @@ import {
   Linking,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';

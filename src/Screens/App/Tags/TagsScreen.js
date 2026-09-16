@@ -1,9 +1,10 @@
 import React, { useState, useContext, useCallback, useMemo, useEffect } from 'react';
 import {
-  View, Text, SafeAreaView, TouchableOpacity, ScrollView,
+  View, Text, TouchableOpacity, ScrollView,
   TextInput, Modal, ActivityIndicator, Alert, StyleSheet,
   KeyboardAvoidingView, Platform, Keyboard, Pressable,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../../../Context/AuthContext';
 import { useTheme } from '../../../Context/ThemeContext';

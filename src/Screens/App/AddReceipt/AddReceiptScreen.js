@@ -1,10 +1,11 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { s, vs, ms } from '../../../Constants/Responsive';
 import {
-  View, Text, SafeAreaView, TextInput, TouchableOpacity,
+  View, Text, TextInput, TouchableOpacity,
   ActivityIndicator, Alert, StyleSheet, Platform, Modal, Pressable,
   FlatList, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../../Constants/Colors';

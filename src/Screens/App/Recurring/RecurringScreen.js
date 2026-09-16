@@ -1,9 +1,10 @@
 import React, { useState, useContext, useCallback, useMemo } from 'react';
 import {
-  View, Text, SafeAreaView, TouchableOpacity, ScrollView,
+  View, Text, TouchableOpacity, ScrollView,
   Modal, Pressable, TextInput, KeyboardAvoidingView, Platform,
   ActivityIndicator, Alert, Switch, StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';

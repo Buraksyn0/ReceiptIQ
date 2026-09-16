@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useContext, useMemo } from 'react';
 import {
-  View, Text, SafeAreaView, StyleSheet,
+  View, Text, StyleSheet,
   ScrollView, ActivityIndicator, TouchableOpacity
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { s, vs, ms } from '../../../Constants/Responsive';
 import { PieChart, BarChart } from 'react-native-gifted-charts';
 import { Ionicons } from '@expo/vector-icons';

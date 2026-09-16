@@ -1,7 +1,8 @@
 import React from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Platform
+  View, Text, TouchableOpacity, StyleSheet, Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { s, vs, ms } from '../Constants/Responsive';
 

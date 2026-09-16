@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import {
-  View, Text, SafeAreaView, ScrollView,
+  View, Text, ScrollView,
   TouchableOpacity, ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '../../../Context/ThemeContext';

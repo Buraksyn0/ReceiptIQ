@@ -3,7 +3,6 @@ import { s, vs, ms } from '../../../Constants/Responsive';
 import {
   View,
   Text,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   TextInput,
@@ -16,6 +15,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StackActions } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';

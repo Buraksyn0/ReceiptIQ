@@ -1,8 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  Dimensions, SafeAreaView, Platform, Animated,
+  Dimensions, Platform, Animated,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { s, vs, ms } from '../../../Constants/Responsive';
