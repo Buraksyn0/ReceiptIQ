@@ -1,8 +1,8 @@
-import React, { useState, useContext, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useContext, useCallback, useMemo } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView,
   Modal, TextInput, KeyboardAvoidingView, Platform,
-  ActivityIndicator, Alert, StyleSheet, FlatList, Keyboard, TouchableWithoutFeedback, Pressable,
+  ActivityIndicator, Alert, StyleSheet, Keyboard, Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,43 +28,6 @@ export default function SavingsGoalScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  // Chat state
-  const [chatVisible, setChatVisible] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState('');
-  const [chatLoading, setChatLoading] = useState(false);
-  const chatListRef = useRef(null);
-
-  const QUICK_QUESTIONS = [
-    'Bu hızda hedefe ulaşabilir miyim?',
-    'Nasıl daha hızlı biriktirebilirim?',
-    'Harcamalarımı nasıl azaltabilirim?',
-    'Hedefe ulaşmam ne kadar sürer?',
-  ];
-
-  const sendChatMessage = async (text) => {
-    const question = text || chatInput.trim();
-    if (!question) return;
-    setChatInput('');
-    const userMsg = { id: Date.now(), role: 'user', text: question };
-    setChatMessages(prev => [...prev, userMsg]);
-    setChatLoading(true);
-    try {
-      const res = await fetch(apiUrl('/chat/savings'), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${userToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
-      });
-      const data = await res.json();
-      const aiMsg = { id: Date.now() + 1, role: 'ai', text: data.answer || 'Yanıt alınamadı.' };
-      setChatMessages(prev => [...prev, aiMsg]);
-    } catch (e) {
-      setChatMessages(prev => [...prev, { id: Date.now() + 1, role: 'ai', text: 'Bağlantı hatası, tekrar dene.' }]);
-    } finally {
-      setChatLoading(false);
-    }
-  };
 
   // Form state
   const [title, setTitle] = useState('');
@@ -243,7 +206,6 @@ export default function SavingsGoalScreen({ navigation }) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
       {/* HEADER */}
       <View style={styles.header}>
@@ -501,116 +463,6 @@ export default function SavingsGoalScreen({ navigation }) {
 
 
     </SafeAreaView>
-
-    {/* CHAT OVERLAY — Modal değil, normal absolute View (Modal içinde KAV iOS'ta çalışmaz) */}
-    {chatVisible && (
-      <View style={StyleSheet.absoluteFill}>
-        <TouchableOpacity
-          style={[StyleSheet.absoluteFill, { backgroundColor: '#00000060' }]}
-          activeOpacity={1}
-          onPress={() => { Keyboard.dismiss(); setChatVisible(false); }}
-        />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1, justifyContent: 'flex-end' }}
-        >
-        <View style={[styles.chatSheet, { backgroundColor: colors.card }]}>
-          {/* Chat header */}
-          <View style={styles.chatHeader}>
-            <View style={styles.chatHeaderLeft}>
-              <View style={styles.chatAiAvatar}>
-                <Ionicons name="sparkles" size={18} color="#fff" />
-              </View>
-              <View>
-                <Text style={[styles.chatHeaderTitle, { color: colors.textMain }]}>Tasarruf Danışmanı</Text>
-                <Text style={{ fontSize: ms(11), color: colors.textSecondary }}>Hedefin hakkında her şeyi sorabilirsin</Text>
-              </View>
-            </View>
-            <TouchableOpacity onPress={() => { Keyboard.dismiss(); setChatVisible(false); }}>
-              <Ionicons name="close" size={24} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Mesajlar */}
-          <FlatList
-            ref={chatListRef}
-            data={chatMessages}
-            keyExtractor={item => String(item.id)}
-            style={{ flex: 1, paddingHorizontal: 16 }}
-            contentContainerStyle={{ paddingVertical: 12, gap: 10 }}
-            keyboardShouldPersistTaps="handled"
-            onContentSizeChange={() => chatListRef.current?.scrollToEnd({ animated: true })}
-            ListEmptyComponent={
-              <View style={{ alignItems: 'center', marginTop: 20 }}>
-                <Text style={{ color: colors.textSecondary, fontSize: ms(13), textAlign: 'center', lineHeight: ms(20) }}>
-                  Merhaba! 👋{'\n'}Tasarruf hedefin hakkında sormak istediğin bir şey var mı?
-                </Text>
-              </View>
-            }
-            renderItem={({ item }) => (
-              <View style={[
-                styles.chatBubble,
-                item.role === 'user'
-                  ? [styles.chatBubbleUser, { backgroundColor: Colors.primary }]
-                  : [styles.chatBubbleAi, { backgroundColor: colors.background }]
-              ]}>
-                <Text style={[
-                  styles.chatBubbleText,
-                  { color: item.role === 'user' ? '#fff' : colors.textMain }
-                ]}>
-                  {item.text}
-                </Text>
-              </View>
-            )}
-          />
-
-          {/* Yükleniyor */}
-          {chatLoading && (
-            <View style={[styles.chatBubble, styles.chatBubbleAi, { backgroundColor: colors.background, marginHorizontal: 16, marginBottom: 8 }]}>
-              <ActivityIndicator size="small" color={Colors.primary} />
-            </View>
-          )}
-
-          {/* Hızlı sorular */}
-          {chatMessages.length === 0 && (
-            <View style={{ paddingHorizontal: 16, marginBottom: 8, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {QUICK_QUESTIONS.map((q, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={[styles.quickChip, { backgroundColor: Colors.primary + '15', borderColor: Colors.primary + '30' }]}
-                  onPress={() => sendChatMessage(q)}
-                >
-                  <Text style={{ fontSize: ms(12), color: Colors.primary, fontWeight: '600' }}>{q}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-
-          {/* Input */}
-          <View style={[styles.chatInputRow, { borderTopColor: colors.border, backgroundColor: colors.card }]}>
-            <TextInput
-              style={[styles.chatInput, { backgroundColor: colors.background, color: colors.textMain }]}
-              placeholder="Bir şey sor..."
-              placeholderTextColor={colors.textSecondary}
-              value={chatInput}
-              onChangeText={setChatInput}
-              multiline
-              maxLength={300}
-            />
-            <TouchableOpacity
-              style={[styles.chatSendBtn, { opacity: chatInput.trim() ? 1 : 0.4 }]}
-              onPress={() => sendChatMessage()}
-              disabled={!chatInput.trim() || chatLoading}
-            >
-              <Ionicons name="send" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        </KeyboardAvoidingView>
-      </View>
-    )}
-
-    </View>
   );
 }
 
@@ -800,44 +652,6 @@ function createStyles(colors) {
       alignItems: 'center', justifyContent: 'center',
       borderWidth: 1,
       shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: s(6), elevation: 3,
-    },
-
-    // Chat overlay
-    chatOverlay: { flex: 1, backgroundColor: '#00000060', justifyContent: 'flex-end' },
-    chatSheet: {
-      maxHeight: '85%',
-      borderTopLeftRadius: s(24), borderTopRightRadius: s(24),
-      overflow: 'hidden',
-    },
-    chatHeader: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      padding: s(16), borderBottomWidth: 1, borderBottomColor: colors.border,
-    },
-    chatHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: s(10) },
-    chatAiAvatar: {
-      width: s(36), height: s(36), borderRadius: s(18),
-      backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center',
-    },
-    chatHeaderTitle: { fontSize: ms(15), fontWeight: '700' },
-    chatBubble: { maxWidth: '80%', borderRadius: s(16), padding: s(12) },
-    chatBubbleUser: { alignSelf: 'flex-end', borderBottomRightRadius: s(4) },
-    chatBubbleAi: { alignSelf: 'flex-start', borderBottomLeftRadius: s(4) },
-    chatBubbleText: { fontSize: ms(14), lineHeight: ms(20) },
-    quickChip: {
-      borderRadius: s(20), paddingHorizontal: s(12), paddingVertical: vs(7),
-      borderWidth: 1,
-    },
-    chatInputRow: {
-      flexDirection: 'row', alignItems: 'flex-end', gap: s(10),
-      padding: s(12), borderTopWidth: 1,
-    },
-    chatInput: {
-      flex: 1, borderRadius: s(20), paddingHorizontal: s(16), paddingVertical: vs(10),
-      fontSize: ms(14), maxHeight: vs(100),
-    },
-    chatSendBtn: {
-      width: s(40), height: s(40), borderRadius: s(20),
-      backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center',
     },
 
     // Date picker
