@@ -1,3 +1,4 @@
+import logging
 import random
 import string
 from datetime import timedelta, datetime, timezone
@@ -17,6 +18,8 @@ from app.models.user import User
 from app.models.password_reset import PasswordResetCode
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, User as UserSchema
+
+log = logging.getLogger(__name__)
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -102,7 +105,7 @@ async def forgot_password(
             sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
             sg.send(message)
         except Exception as e:
-            print(f"E-posta gönderilemedi: {e}")
+            log.error("E-posta gönderilemedi: %s", e)
 
     return {"message": "Eğer bu e-posta kayıtlıysa, sıfırlama kodu gönderildi."}
 

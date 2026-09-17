@@ -59,7 +59,7 @@ app.mount("/avatars", StaticFiles(directory=AVATARS_DIR), name="avatars")
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to ReceiptIQ API", "docs": "/docs"}
+    return {"message": "Welcome to ReceiptIQ API", "docs": None if IS_PRODUCTION else "/docs"}
 
 
 @app.get("/health")

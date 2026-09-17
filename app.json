@@ -50,7 +50,9 @@
           "photosPermission": "Fiş görsellerini galerinizden seçebilmek için galeriye erişmesi gerekiyor."
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-notifications",
+      "expo-local-authentication"
     ],
     "extra": {
       "eas": {
