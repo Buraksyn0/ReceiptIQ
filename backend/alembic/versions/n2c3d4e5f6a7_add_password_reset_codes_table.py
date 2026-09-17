@@ -24,9 +24,7 @@ def upgrade() -> None:
         sa.Column('used', sa.Boolean(), nullable=False, server_default='false'),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     )
-    op.create_index('ix_passwordresetcode_email', 'passwordresetcode', ['email'])
 
 
 def downgrade() -> None:
-    op.drop_index('ix_passwordresetcode_email', table_name='passwordresetcode')
     op.drop_table('passwordresetcode')
