@@ -87,6 +87,22 @@ _VAT_KEYWORDS = (
     "VAT",
 )
 
+# Ödeme bilgisi anahtar kelimeleri — TOPLAM'dan sonraki pencerede bu satırlara
+# rastlanırsa tarama durur. Nedeni: NAKİT (ödenen tutar) ve PARA ÜSTÜ neredeyse
+# her zaman TOPLAM'dan büyüktür (para üstü verilir), bu yüzden take_max=True
+# penceresi bunları TOPLAM sanıp yanlışlıkla seçebilir.
+_PAYMENT_STOP_KEYWORDS = (
+    "NAKİT",
+    "NAKIT",
+    "KREDİ",
+    "KREDI",
+    "KART",
+    "PARA ÜSTÜ",
+    "PARA USTU",
+    "ÜSTÜ",
+    "USTU",
+)
+
 # Satıcı adayları için göz ardı edilecek başlangıçlar
 _MERCHANT_BLACKLIST = (
     "FIŞ",
@@ -193,7 +209,12 @@ def _find_amount_after_keyword(
             # --- Mod 2: sonraki satırlarda tutar ---
             window = text[kw_match.end() : kw_match.end() + 120]
             for line in window.splitlines():
-                m = _AMOUNT_LINE_RE.match(line.strip())
+                stripped_line = line.strip()
+                # Ödeme bilgisi satırına gelince pencereyi kapat — NAKİT/PARA ÜSTÜ
+                # tutarları TOPLAM'dan büyük olabildiği için take_max'i yanıltmasın.
+                if any(kw in stripped_line.upper() for kw in _PAYMENT_STOP_KEYWORDS):
+                    break
+                m = _AMOUNT_LINE_RE.match(stripped_line)
                 if m:
                     dec = _to_decimal(m.group(1))
                     if dec is not None and dec > 0:
