@@ -68,6 +68,7 @@ function ReportsScreen({ navigation }) {
         || CATEGORIES.find(c => c.id === 'other');
       return {
         value: amount,
+        displayValue: amount,
         color: catMeta.color,
         label: catMeta.label,
         icon: catMeta.icon,
@@ -76,7 +77,9 @@ function ReportsScreen({ navigation }) {
     }).sort((a, b) => b.value - a.value);
 
     if (chartData.length === 0) {
-      chartData = [{ value: 1, color: '#E2E8F0', label: 'Gider Yok', icon: 'remove-circle-outline', percentage: 0 }];
+      // value: 1 sadece pasta grafiğin boş görünmemesi için (gerçek bir tutar değil),
+      // legend'de gösterilecek gerçek tutar displayValue: 0 olmalı.
+      chartData = [{ value: 1, displayValue: 0, color: '#E2E8F0', label: 'Gider Yok', icon: 'remove-circle-outline', percentage: 0 }];
     }
 
     return {
@@ -264,7 +267,7 @@ function ReportsScreen({ navigation }) {
                     <Text style={styles.legendPercentage}>%{item.percentage}</Text>
                   </View>
                 </View>
-                <Text style={styles.legendAmount}>{currencySymbol}{formatTR(convertAmount(item.value))}</Text>
+                <Text style={styles.legendAmount}>{currencySymbol}{formatTR(convertAmount(item.displayValue))}</Text>
               </View>
             ))}
           </View>

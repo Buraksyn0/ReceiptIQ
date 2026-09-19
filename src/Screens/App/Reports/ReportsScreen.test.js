@@ -86,4 +86,7 @@ test('hiç gider yoksa "Gider Yok" boş durumu gösterilmeli', async () => {
   await waitFor(() => {
     expect(getByText('Gider Yok')).toBeTruthy();
   });
+  // "Gider Yok" satırındaki tutar, pasta grafiğin iç çizim değeri (1) değil,
+  // gerçek gider tutarı (0) olmalı — bkz. displayValue düzeltmesi.
+  expect(getByText('₺0,00')).toBeTruthy();
 });
