@@ -18,7 +18,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "ReceiptIQ fişlerinizi tarayabilmek için kameraya erişmesi gerekiyor.",
         "NSPhotoLibraryUsageDescription": "Fiş görsellerini galerinizden seçebilmek için galeriye erişmesi gerekiyor.",
-        "NSFaceIDUsageDescription": "ReceiptIQ'ya hızlı ve güvenli giriş yapabilmek için Face ID kullanılıyor."
+        "NSFaceIDUsageDescription": "ReceiptIQ'ya hızlı ve güvenli giriş yapabilmek için Face ID kullanılıyor.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
