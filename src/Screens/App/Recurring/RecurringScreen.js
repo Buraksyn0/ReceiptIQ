@@ -322,7 +322,7 @@ function RecurringScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
 
-              <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
+              <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
                 {/* İsim */}
                 <Text style={styles.label}>İşlem Adı</Text>
                 <View style={styles.inputRow}>
