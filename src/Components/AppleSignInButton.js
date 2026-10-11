@@ -72,7 +72,8 @@ function AppleSignInButton() {
 const styles = StyleSheet.create({
   // Ekranlardaki buton satırı yatay (row) — flex: 1 ile satırı doldurur
   container: { flex: 1, paddingHorizontal: 6 },
-  button: { width: '100%', height: 52 },
+  // Apple'ın izin verdiği minimum yükseklik 44pt
+  button: { width: '100%', height: 44 },
 });
 
 export default AppleSignInButton;
