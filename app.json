@@ -15,6 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.buraksayan.receiptiq",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "ReceiptIQ fişlerinizi tarayabilmek için kameraya erişmesi gerekiyor.",
         "NSPhotoLibraryUsageDescription": "Fiş görsellerini galerinizden seçebilmek için galeriye erişmesi gerekiyor.",
@@ -53,7 +54,8 @@
       ],
       "expo-asset",
       "expo-notifications",
-      "expo-local-authentication"
+      "expo-local-authentication",
+      "expo-apple-authentication"
     ],
     "extra": {
       "eas": {

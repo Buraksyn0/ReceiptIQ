@@ -13,6 +13,11 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     full_name: Mapped[str | None] = mapped_column(String)
 
+    # Sign in with Apple — Apple'ın verdiği kalıcı kullanıcı kimliği (token'daki "sub")
+    apple_sub: Mapped[str | None] = mapped_column(
+        String(255), unique=True, index=True, nullable=True
+    )
+
     # 2.1.1 — Profil: isim, şehir, telefon, avatar, üyelik tarihi
     city: Mapped[str | None] = mapped_column(String(100))
     phone: Mapped[str | None] = mapped_column(String(30))

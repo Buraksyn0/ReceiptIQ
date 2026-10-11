@@ -1,10 +1,20 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import SignUpScreen from './SignUpScreen';
+import { AuthContext } from '../../../Context/AuthContext';
+
+// AuthContext.js native modüller içe aktarıyor — hafif sahtesini koyuyoruz
+jest.mock('../../../Context/AuthContext', () => ({
+  AuthContext: require('react').createContext({}),
+}));
 
 async function renderScreen() {
   const navigation = { navigate: jest.fn() };
-  const rendered = await render(<SignUpScreen navigation={navigation} />);
+  const rendered = await render(
+    <AuthContext.Provider value={{ login: jest.fn() }}>
+      <SignUpScreen navigation={navigation} />
+    </AuthContext.Provider>
+  );
   return { navigation, ...rendered };
 }
 

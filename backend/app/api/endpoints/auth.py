@@ -1,12 +1,14 @@
 import logging
 import random
+import secrets
 import string
 from datetime import timedelta, datetime, timezone
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from slowapi import Limiter
@@ -16,6 +18,7 @@ from app.core import security
 from app.core.config import settings
 from app.models.user import User
 from app.models.password_reset import PasswordResetCode
+from app.services import apple_auth
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, User as UserSchema
 
@@ -41,6 +44,77 @@ async def login_access_token(
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
         user.id, expires_delta=access_token_expires
+    )
+    return Token(access_token=access_token, token_type="bearer")
+
+
+class AppleLoginRequest(BaseModel):
+    identity_token: str
+    # Apple adı yalnızca ilk girişte telefona verir, token'ın içinde yoktur
+    full_name: str | None = None
+
+
+@router.post("/apple", response_model=Token)
+@limiter.limit("10/minute")
+async def apple_login(
+    request: Request,
+    body: AppleLoginRequest,
+    db: AsyncSession = Depends(deps.get_db),
+) -> Token:
+    """Sign in with Apple: token'ı doğrula, kullanıcıyı bul/bağla/oluştur."""
+    try:
+        claims = await apple_auth.verify_identity_token(body.identity_token)
+    except apple_auth.AppleTokenError as e:
+        log.warning("Apple token reddedildi: %s", e)
+        raise HTTPException(status_code=401, detail="Apple girişi doğrulanamadı.")
+    except httpx.HTTPError as e:
+        log.error("Apple anahtarları alınamadı: %s", e)
+        raise HTTPException(status_code=503, detail="Apple servisine ulaşılamadı, tekrar deneyin.")
+
+    apple_sub = claims["sub"]
+
+    # 1) Bu Apple hesabı daha önce bağlanmış mı?
+    result = await db.execute(select(User).where(User.apple_sub == apple_sub))
+    user = result.scalars().first()
+
+    if not user:
+        email = (claims.get("email") or "").strip().lower()
+        if not email:
+            raise HTTPException(
+                status_code=400,
+                detail="Apple hesabından e-posta alınamadı. Lütfen e-posta ile kayıt olun.",
+            )
+        # Apple bazen "true" (string), bazen true (bool) gönderir
+        email_verified = str(claims.get("email_verified")).lower() == "true"
+
+        # 2) Aynı e-postayla kayıtlı hesap var mı? Varsa bağla.
+        result = await db.execute(select(User).where(func.lower(User.email) == email))
+        user = result.scalars().first()
+
+        if user:
+            # Doğrulanmamış e-postayla bağlarsak, başkasının e-postasını
+            # taklit eden biri hesabı ele geçirebilir.
+            if not email_verified:
+                raise HTTPException(status_code=400, detail="Apple e-postası doğrulanmamış.")
+            if user.apple_sub and user.apple_sub != apple_sub:
+                raise HTTPException(status_code=409, detail="Bu hesap başka bir Apple hesabına bağlı.")
+            user.apple_sub = apple_sub
+        else:
+            # 3) Yeni kullanıcı. Şifre girişi olmadığı için tahmin edilemez rastgele
+            # bir şifre atıyoruz (hashed_password boş bırakılamıyor).
+            user = User(
+                email=email,
+                hashed_password=security.get_password_hash(secrets.token_urlsafe(32)),
+                full_name=(body.full_name or "").strip() or None,
+                apple_sub=apple_sub,
+            )
+            db.add(user)
+
+        await db.commit()
+        await db.refresh(user)
+
+    access_token = security.create_access_token(
+        user.id, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     return Token(access_token=access_token, token_type="bearer")
 

@@ -6,7 +6,7 @@ import Colors from '../../../Constants/Colors';
 import { apiUrl } from '../../../Constants/Config';
 import CustomInput from '../../../Components/CustomInput';
 import PrimaryButton from '../../../Components/PrimaryButton';
-import SocialButton from '../../../Components/SocialButton';
+import AppleSignInButton from '../../../Components/AppleSignInButton';
 import styles from './SignInStyles';
 
 // BEYNİ İÇERİ AKTARIYORUZ
@@ -105,8 +105,7 @@ function SignInScreen({ navigation, route }) {
                 <View style={styles.divider} /><Text style={styles.dividerText}>OR</Text><View style={styles.divider} />
              </View>
              <View style={styles.socialButtonsContainer}>
-                <SocialButton iconName="logo-google" text="Google" iconColor="#DB4437" />
-                <SocialButton iconName="logo-apple" text="Apple" iconColor="#000000" />
+                <AppleSignInButton />
              </View>
              <View style={styles.signUpContainer}>
                 <Text style={styles.subText}>Don't have an account? </Text>

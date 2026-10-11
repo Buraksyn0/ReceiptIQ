@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     QDRANT_URL: str | None = None
     QDRANT_API_KEY: str | None = None
 
+    # === Sign in with Apple ===
+    # Apple token'ının "aud" (hedef kitle) değeri: iOS uygulamasının bundle ID'si.
+    # Expo Go ile denemek için lokalde APPLE_BUNDLE_ID=host.exp.Exponent verilir.
+    APPLE_BUNDLE_ID: str = "com.buraksayan.receiptiq"
+
     # === E-posta ===
     SENDGRID_API_KEY: str | None = None
     SENDGRID_FROM_EMAIL: str = "sayannburakks@gmail.com"
