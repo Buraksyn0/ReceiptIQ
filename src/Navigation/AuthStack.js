@@ -13,6 +13,7 @@ import TabNavigator from './TabNavigator';
 import AlertsScreen from '../Screens/App/Alerts';
 import PolicyScreen from '../Screens/App/Policy/PolicyScreen';
 import ForgotPasswordScreen from '../Screens/Auth/ForgotPassword/ForgotPasswordScreen';
+import VerifyEmailScreen from '../Screens/Auth/VerifyEmail/VerifyEmailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,10 +21,11 @@ function AuthStack() {
   const [initialRoute, setInitialRoute] = useState(null);
 
   useEffect(() => {
-    // TEST: onboarding'i sıfırla — test bittikten sonra bu satırı sil
-    AsyncStorage.removeItem('onboarding_done').then(() => {
-      setInitialRoute('Onboarding');
-    });
+    // Tanıtım ekranı daha önce tamamlandıysa (OnboardingScreen bayrağı yazar)
+    // doğrudan giriş ekranından başla; okunamazsa tanıtımı göster.
+    AsyncStorage.getItem('onboarding_done')
+      .then((done) => setInitialRoute(done === 'true' ? 'SignIn' : 'Onboarding'))
+      .catch(() => setInitialRoute('Onboarding'));
   }, []);
 
   // AsyncStorage kontrolü bitmeden ekran açma
@@ -45,6 +47,7 @@ function AuthStack() {
       <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
 
       {/* App Ekranları */}
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
