@@ -3,8 +3,8 @@ Auth akışı testleri: kayıt, giriş ve şifre sıfırlama rate limiting.
 """
 
 
-async def test_signup_and_login(client):
-    """Yeni bir kullanıcı kayıt olup, aynı bilgilerle giriş yapabilmeli."""
+async def test_signup_and_login(client, sent_verification_emails):
+    """Yeni kullanıcı kayıt olup e-postasını doğruladıktan sonra giriş yapabilmeli."""
     email = "signup_test@test.com"
     password = "testpass123"
 
@@ -13,6 +13,12 @@ async def test_signup_and_login(client):
         json={"email": email, "password": password, "full_name": "Signup Test"},
     )
     assert signup_res.status_code == 200
+
+    _, code = sent_verification_emails[-1]
+    verify_res = await client.post(
+        "/api/v1/auth/verify-email", json={"email": email, "code": code}
+    )
+    assert verify_res.status_code == 200
 
     login_res = await client.post(
         "/api/v1/auth/login",
@@ -31,8 +37,11 @@ async def test_login_wrong_password_fails(client, test_user):
     assert res.status_code in (400, 401)
 
 
-async def test_signup_duplicate_email_fails(client):
-    """Aynı e-posta ile iki kez kayıt olunamamalı."""
+async def test_signup_duplicate_email_fails(client, verify_email):
+    """
+    Aynı e-posta ile iki kez kayıt olunamamalı — e-postası doğrulanmış hesapta.
+    (Doğrulanmamış kayıt başkası tarafından devralınabilir, bkz. test_email_verification.py)
+    """
     payload = {
         "email": "duplicate_test@test.com",
         "password": "testpass123",
@@ -42,6 +51,7 @@ async def test_signup_duplicate_email_fails(client):
     # İlk kayıt — başarılı olmalı
     first_res = await client.post("/api/v1/auth/signup", json=payload)
     assert first_res.status_code == 200
+    await verify_email(payload["email"])
 
     # Aynı bilgilerle ikinci kayıt denemesi — reddedilmeli
     second_res = await client.post("/api/v1/auth/signup", json=payload)
@@ -89,3 +99,81 @@ async def test_reset_password_is_rate_limited(client):
 
     sixth = await client.post("/api/v1/auth/reset-password", json=payload)
     assert sixth.status_code == 429
+
+
+async def test_forgot_password_sends_six_digit_code_only_for_existing_user(
+    client, test_user, sent_reset_emails
+):
+    await client.post("/api/v1/auth/forgot-password", json={"email": "yok@test.com"})
+    assert sent_reset_emails == []  # kayıtsız adrese kod gitmez (ama yanıt aynı)
+
+    await client.post("/api/v1/auth/forgot-password", json={"email": test_user["email"]})
+    assert len(sent_reset_emails) == 1
+    to_email, code = sent_reset_emails[0]
+    assert to_email == test_user["email"]
+    assert len(code) == 6 and code.isdigit()
+
+
+async def test_reset_password_with_correct_code_works(client, test_user, sent_reset_emails):
+    await client.post("/api/v1/auth/forgot-password", json={"email": test_user["email"]})
+    _, code = sent_reset_emails[-1]
+
+    res = await client.post(
+        "/api/v1/auth/reset-password",
+        json={"email": test_user["email"], "code": code, "new_password": "yenisifre123"},
+    )
+    assert res.status_code == 200
+
+    login = await client.post(
+        "/api/v1/auth/login",
+        data={"username": test_user["email"], "password": "yenisifre123"},
+    )
+    assert login.status_code == 200
+
+
+async def test_reset_code_is_locked_after_too_many_wrong_attempts(
+    client, test_user, sent_reset_emails
+):
+    """5 yanlış denemeden sonra doğru kod bile kabul edilmemeli; şifre değişmemeli."""
+    await client.post("/api/v1/auth/forgot-password", json={"email": test_user["email"]})
+    _, code = sent_reset_emails[-1]
+    wrong = "000000" if code != "000000" else "111111"
+
+    def attempt(c):
+        return client.post(
+            "/api/v1/auth/reset-password",
+            json={"email": test_user["email"], "code": c, "new_password": "yenisifre123"},
+        )
+
+    for _ in range(5):
+        assert (await attempt(wrong)).status_code == 400
+
+    # IP başına dakikalık sınır (429) ayrı bir koruma. Burada saldırganın başka IP'den
+    # ya da sonra denemesini taklit edip, KODUN kendi kilidini sınıyoruz.
+    from app.api.endpoints import auth as auth_endpoints
+    from app.main import app
+    app.state.limiter.reset()
+    auth_endpoints.limiter.reset()
+
+    assert (await attempt(code)).status_code == 400  # doğru kod ama kilitli
+
+    # Şifre değişmedi: eski şifre hâlâ geçerli
+    login = await client.post(
+        "/api/v1/auth/login",
+        data={"username": test_user["email"], "password": test_user["password"]},
+    )
+    assert login.status_code == 200
+
+
+async def test_reset_password_email_is_case_insensitive(client, test_user, sent_reset_emails):
+    """Büyük harfle yazılmış e-postayla da kod isteyip sıfırlamak mümkün olmalı."""
+    upper = test_user["email"].upper()
+    await client.post("/api/v1/auth/forgot-password", json={"email": upper})
+    assert len(sent_reset_emails) == 1
+    _, code = sent_reset_emails[-1]
+
+    res = await client.post(
+        "/api/v1/auth/reset-password",
+        json={"email": upper, "code": code, "new_password": "yenisifre123"},
+    )
+    assert res.status_code == 200

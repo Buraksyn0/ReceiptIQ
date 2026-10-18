@@ -116,6 +116,47 @@ async def test_existing_email_account_is_linked(client, test_user):
     assert login.status_code == 200
 
 
+async def test_preregistered_unverified_account_is_taken_over_by_real_owner(client):
+    """
+    Kayıt önceden ele geçirme senaryosu: saldırgan kurbanın e-postasıyla kendi
+    şifresiyle hesap açar. Kurban sonra Apple ile girince hesap kurbana geçmeli
+    ve saldırganın şifresi çalışmaz hale gelmeli.
+    """
+    victim = "kurban@test.com"
+    await client.post(
+        "/api/v1/auth/signup",
+        json={"email": victim, "password": "saldirgan123", "full_name": "Saldırgan"},
+    )
+
+    res = await _apple_login(client, make_token(sub="apple-victim-001", email=victim))
+    assert res.status_code == 200
+
+    # Saldırganın bildiği şifre artık işe yaramaz
+    attacker_login = await client.post(
+        "/api/v1/auth/login", data={"username": victim, "password": "saldirgan123"}
+    )
+    assert attacker_login.status_code == 400
+
+    # Gerçek sahip (Apple) hesabına giriyor
+    again = await _apple_login(client, make_token(sub="apple-victim-001", email=None))
+    assert again.status_code == 200
+
+
+async def test_signup_does_not_overwrite_account_owned_via_apple(client):
+    """Apple kimliğine bağlı hesap (e-posta doğrulanmamış olsa bile) kayıtla ezilemez."""
+    email = "apple_hesap@test.com"
+    res = await _apple_login(
+        client, make_token(sub="apple-own-001", email=email, email_verified="false")
+    )
+    assert res.status_code == 200
+
+    signup = await client.post(
+        "/api/v1/auth/signup",
+        json={"email": email, "password": "saldirgan123", "full_name": "S"},
+    )
+    assert signup.status_code == 400
+
+
 async def test_returning_user_logs_in_without_email_in_token(client):
     """İkinci girişte token'da e-posta olmasa bile 'sub' ile tanınmalı."""
     first = await _apple_login(client, make_token(sub="apple-ret-001"))

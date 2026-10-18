@@ -12,3 +12,4 @@ from app.models.recurring import RecurringTransaction  # noqa
 from app.models.savings_goal import SavingsGoal  # noqa
 from app.models.tag import Tag, ReceiptTag  # noqa
 from app.models.password_reset import PasswordResetCode  # noqa
+from app.models.email_verification import EmailVerificationCode  # noqa

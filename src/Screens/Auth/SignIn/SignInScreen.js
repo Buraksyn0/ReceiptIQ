@@ -46,6 +46,9 @@ function SignInScreen({ navigation, route }) {
       if (response.ok) {
         // ALTIN VURUŞ: Token'ı beynin içine (SecureStore'a) atıyoruz!
         login(data.access_token);
+      } else if (response.status === 403) {
+        // Şifre doğru ama e-posta doğrulanmamış: kod ekranına git, kodu yeniden gönder
+        navigation.navigate('VerifyEmail', { email: email.trim().toLowerCase(), autoSend: true });
       } else {
         alert("Giriş başarısız: " + (data.detail || "Hatalı email veya şifre"));
       }

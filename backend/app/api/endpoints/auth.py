@@ -1,5 +1,4 @@
 import logging
-import random
 import secrets
 import string
 from datetime import timedelta, datetime, timezone
@@ -9,8 +8,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, func
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from app.api import deps
@@ -18,6 +15,11 @@ from app.core import security
 from app.core.config import settings
 from app.models.user import User
 from app.models.password_reset import PasswordResetCode
+from app.models.email_verification import EmailVerificationCode
+from app.services.email_service import (
+    send_password_reset_email,
+    send_verification_code_email,
+)
 from app.services import apple_auth
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, User as UserSchema
@@ -26,6 +28,11 @@ log = logging.getLogger(__name__)
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
+
+# OTP (6 haneli kod) ayarları — e-posta doğrulama ve şifre sıfırlama ortak kullanır
+VERIFICATION_CODE_TTL_MINUTES = 15
+VERIFICATION_MAX_ATTEMPTS = 5
+VERIFICATION_RESEND_COOLDOWN_SECONDS = 60
 
 
 @router.post("/login", response_model=Token)
@@ -40,6 +47,10 @@ async def login_access_token(
     user = result.scalars().first()
     if not user or not security.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="E-posta veya şifre hatalı.")
+    # Şifre doğru ama e-posta sahipliği kanıtlanmamış: önce doğrulama gerekir.
+    # (Kontrolü şifreden SONRA yapıyoruz, yoksa hesabın var olduğunu sızdırırız.)
+    if not user.email_verified:
+        raise HTTPException(status_code=403, detail="E-posta adresiniz doğrulanmamış.")
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
@@ -99,6 +110,14 @@ async def apple_login(
             if user.apple_sub and user.apple_sub != apple_sub:
                 raise HTTPException(status_code=409, detail="Bu hesap başka bir Apple hesabına bağlı.")
             user.apple_sub = apple_sub
+            if not user.email_verified:
+                # Bu hesabın e-postasını kimse kanıtlamamıştı: kaydı başka biri
+                # kurbanın e-postasıyla, kendi şifresiyle açmış olabilir (kayıt
+                # önceden ele geçirme). Apple e-postayı şimdi kanıtladığı için
+                # hesap gerçek sahibinin olur; eski şifreyi geçersiz kıl.
+                log.warning("Doğrulanmamış hesap Apple ile bağlandı, şifre sıfırlandı: %s", user.id)
+                user.hashed_password = security.get_password_hash(secrets.token_urlsafe(32))
+                user.email_verified = True
         else:
             # 3) Yeni kullanıcı. Şifre girişi olmadığı için tahmin edilemez rastgele
             # bir şifre atıyoruz (hashed_password boş bırakılamıyor).
@@ -107,6 +126,7 @@ async def apple_login(
                 hashed_password=security.get_password_hash(secrets.token_urlsafe(32)),
                 full_name=(body.full_name or "").strip() or None,
                 apple_sub=apple_sub,
+                email_verified=email_verified,
             )
             db.add(user)
 
@@ -136,7 +156,8 @@ async def forgot_password(
     body: ForgotPasswordRequest,
     db: AsyncSession = Depends(deps.get_db),
 ):
-    result = await db.execute(select(User).filter(User.email == body.email))
+    email = body.email.lower()
+    result = await db.execute(select(User).where(func.lower(User.email) == email))
     user = result.scalars().first()
     # Kullanıcı bulunamasa bile aynı yanıtı döndür (güvenlik)
     if not user:
@@ -144,42 +165,25 @@ async def forgot_password(
 
     # Mevcut kodları temizle
     await db.execute(
-        delete(PasswordResetCode).where(PasswordResetCode.email == body.email)
+        delete(PasswordResetCode).where(PasswordResetCode.email == email)
     )
 
-    # 6 haneli OTP üret ve DB'ye kaydet
-    otp = "".join(random.choices(string.digits, k=6))
+    # 6 haneli OTP üret ve DB'ye kaydet (secrets: tahmin edilemez rastgelelik)
+    otp = "".join(secrets.choice(string.digits) for _ in range(6))
     expires = datetime.now(timezone.utc) + timedelta(minutes=15)
     reset_entry = PasswordResetCode(
-        email=body.email,
+        email=email,
         code=otp,
         expires_at=expires,
     )
     db.add(reset_entry)
     await db.commit()
 
-    # SendGrid ile e-posta gönder
-    if settings.SENDGRID_API_KEY:
-        try:
-            message = Mail(
-                from_email=settings.SENDGRID_FROM_EMAIL,
-                to_emails=body.email,
-                subject="ReceiptIQ - Şifre Sıfırlama Kodu",
-                html_content=f"""
-                <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #f7f8ff; border-radius: 16px;">
-                    <h2 style="color: #6C63FF; margin-bottom: 8px;">ReceiptIQ</h2>
-                    <p style="color: #1A1D1E; font-size: 16px;">Şifrenizi sıfırlamak için aşağıdaki kodu kullanın:</p>
-                    <div style="background: #fff; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0; border: 2px solid #6C63FF;">
-                        <span style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #6C63FF;">{otp}</span>
-                    </div>
-                    <p style="color: #6B7280; font-size: 13px;">Bu kod 15 dakika geçerlidir. Eğer bu isteği siz yapmadıysanız, bu e-postayı görmezden gelebilirsiniz.</p>
-                </div>
-                """
-            )
-            sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-            sg.send(message)
-        except Exception as e:
-            log.error("E-posta gönderilemedi: %s", e)
+    # E-postayı gönder (SendGrid yoksa/başarısızsa log'a düşer, istek yine de başarılı döner)
+    sent = await send_password_reset_email(email, otp)
+    if not sent and settings.ENVIRONMENT != "production":
+        # Lokal geliştirmede SendGrid yoksa kodu log'dan okuyabilmek için
+        log.info("DEV şifre sıfırlama kodu (%s): %s", email, otp)
 
     return {"message": "Eğer bu e-posta kayıtlıysa, sıfırlama kodu gönderildi."}
 
@@ -191,10 +195,11 @@ async def reset_password(
     body: ResetPasswordRequest,
     db: AsyncSession = Depends(deps.get_db),
 ):
+    email = body.email.lower()
     # DB'den geçerli kodu bul
     result = await db.execute(
         select(PasswordResetCode).where(
-            PasswordResetCode.email == body.email,
+            PasswordResetCode.email == email,
             PasswordResetCode.used == False,
         ).order_by(PasswordResetCode.created_at.desc())
     )
@@ -208,21 +213,139 @@ async def reset_password(
         await db.commit()
         raise HTTPException(status_code=400, detail="Kodun süresi dolmuş. Lütfen tekrar isteyin.")
 
-    if entry.code != body.code:
+    if entry.attempts >= VERIFICATION_MAX_ATTEMPTS:
+        await db.delete(entry)
+        await db.commit()
+        raise HTTPException(status_code=400, detail="Çok fazla hatalı deneme. Lütfen yeni kod isteyin.")
+
+    if not secrets.compare_digest(entry.code, body.code.strip()):
+        entry.attempts += 1
+        await db.commit()
         raise HTTPException(status_code=400, detail="Hatalı kod.")
 
     # Kullanıcının şifresini güncelle
-    user_result = await db.execute(select(User).filter(User.email == body.email))
+    user_result = await db.execute(select(User).where(func.lower(User.email) == email))
     user = user_result.scalars().first()
     if not user:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı.")
 
     user.hashed_password = security.get_password_hash(body.new_password)
+    # Kod o e-postaya gitti: sahipliği kanıtlandı
+    user.email_verified = True
     # Kodu kullanıldı olarak işaretle ve sil
     await db.delete(entry)
     await db.commit()
 
     return {"message": "Şifre başarıyla güncellendi."}
+
+
+async def _issue_verification_code(db: AsyncSession, email: str) -> None:
+    """Eski kodları siler, yeni 6 haneli kod üretip DB'ye yazar ve e-postayla yollar."""
+    email = email.lower()
+    await db.execute(
+        delete(EmailVerificationCode).where(EmailVerificationCode.email == email)
+    )
+    # secrets: tahmin edilemez (kriptografik) rastgelelik — random modülü bunun için uygun değil
+    code = "".join(secrets.choice(string.digits) for _ in range(6))
+    db.add(
+        EmailVerificationCode(
+            email=email,
+            code=code,
+            expires_at=datetime.now(timezone.utc)
+            + timedelta(minutes=VERIFICATION_CODE_TTL_MINUTES),
+        )
+    )
+    await db.commit()
+
+    sent = await send_verification_code_email(email, code)
+    if not sent and settings.ENVIRONMENT != "production":
+        # Lokal geliştirmede SendGrid yoksa kodu log'dan okuyabilmek için
+        log.info("DEV doğrulama kodu (%s): %s", email, code)
+
+
+class VerifyEmailRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+@router.post("/verify-email")
+@limiter.limit("10/minute")
+async def verify_email(
+    request: Request,
+    body: VerifyEmailRequest,
+    db: AsyncSession = Depends(deps.get_db),
+):
+    """Kayıt sonrası e-postaya gelen 6 haneli kodu doğrular."""
+    email = body.email.lower()
+    result = await db.execute(
+        select(EmailVerificationCode)
+        .where(EmailVerificationCode.email == email)
+        .order_by(EmailVerificationCode.created_at.desc())
+    )
+    entry = result.scalars().first()
+    if not entry:
+        raise HTTPException(status_code=400, detail="Geçersiz veya süresi dolmuş kod.")
+
+    if datetime.now(timezone.utc) > entry.expires_at:
+        await db.delete(entry)
+        await db.commit()
+        raise HTTPException(status_code=400, detail="Kodun süresi dolmuş. Lütfen yeni kod isteyin.")
+
+    if entry.attempts >= VERIFICATION_MAX_ATTEMPTS:
+        await db.delete(entry)
+        await db.commit()
+        raise HTTPException(status_code=400, detail="Çok fazla hatalı deneme. Lütfen yeni kod isteyin.")
+
+    if not secrets.compare_digest(entry.code, body.code.strip()):
+        entry.attempts += 1
+        await db.commit()
+        raise HTTPException(status_code=400, detail="Hatalı kod.")
+
+    user_result = await db.execute(select(User).where(func.lower(User.email) == email))
+    user = user_result.scalars().first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Geçersiz veya süresi dolmuş kod.")
+
+    user.email_verified = True
+    await db.delete(entry)
+    await db.commit()
+    return {"message": "E-posta adresiniz doğrulandı."}
+
+
+@router.post("/resend-verification")
+@limiter.limit("3/minute")
+async def resend_verification(
+    request: Request,
+    body: ResendVerificationRequest,
+    db: AsyncSession = Depends(deps.get_db),
+):
+    """Doğrulama kodunu yeniden gönderir. Hesap var mı/yok mu sızdırmamak için hep aynı yanıt."""
+    message = {"message": "Eğer bu e-posta doğrulama bekliyorsa, yeni kod gönderildi."}
+    email = body.email.lower()
+
+    result = await db.execute(select(User).where(func.lower(User.email) == email))
+    user = result.scalars().first()
+    if not user or user.email_verified:
+        return message
+
+    # Aynı adrese kısa sürede tekrar tekrar mail atılmasın (e-posta bombardımanı)
+    last = await db.execute(
+        select(EmailVerificationCode)
+        .where(EmailVerificationCode.email == email)
+        .order_by(EmailVerificationCode.created_at.desc())
+    )
+    last_entry = last.scalars().first()
+    if last_entry and (
+        datetime.now(timezone.utc) - last_entry.created_at
+    ).total_seconds() < VERIFICATION_RESEND_COOLDOWN_SECONDS:
+        return message
+
+    await _issue_verification_code(db, email)
+    return message
 
 
 @router.post("/signup", response_model=UserSchema)
@@ -233,20 +356,34 @@ async def create_user(
     db: AsyncSession = Depends(deps.get_db),
     user_in: UserCreate,
 ) -> User:
-    """Yeni kullanıcı oluştur."""
-    result = await db.execute(select(User).filter(User.email == user_in.email))
+    """Yeni kullanıcı oluştur; e-posta doğrulama kodunu gönderir."""
+    result = await db.execute(
+        select(User).where(func.lower(User.email) == user_in.email.lower())
+    )
     user = result.scalars().first()
-    if user:
+
+    if user and (user.email_verified or user.apple_sub):
         raise HTTPException(
             status_code=400,
             detail="Bu e-posta adresi zaten kayıtlı.",
         )
-    user = User(
-        email=user_in.email,
-        hashed_password=security.get_password_hash(user_in.password),
-        full_name=user_in.full_name,
-    )
-    db.add(user)
+
+    if user:
+        # Bu e-postayı hiç kimse kanıtlamadı (doğrulanmamış kayıt, giriş de yapılamıyor):
+        # "ilk gelen kazanır" olmasın. Kaydı yeni şifreyle ez, yeni kod gönder; kodu
+        # girebilen e-postanın gerçek sahibi olur. Başka birinin önceden açtığı
+        # kayıt (kayıt önceden ele geçirme) böylece etkisiz kalır.
+        user.hashed_password = security.get_password_hash(user_in.password)
+        user.full_name = user_in.full_name
+    else:
+        user = User(
+            email=user_in.email,
+            hashed_password=security.get_password_hash(user_in.password),
+            full_name=user_in.full_name,
+        )
+        db.add(user)
+
     await db.commit()
     await db.refresh(user)
+    await _issue_verification_code(db, user.email)
     return user

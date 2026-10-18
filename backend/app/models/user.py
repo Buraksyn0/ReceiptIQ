@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, UUID, DateTime, func
+from sqlalchemy import String, UUID, DateTime, Boolean, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base_class import Base
 
@@ -12,6 +12,11 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     full_name: Mapped[str | None] = mapped_column(String)
+
+    # E-posta sahipliği kanıtlandı mı? (kayıt kodu, Apple veya şifre sıfırlama ile)
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
 
     # Sign in with Apple — Apple'ın verdiği kalıcı kullanıcı kimliği (token'daki "sub")
     apple_sub: Mapped[str | None] = mapped_column(

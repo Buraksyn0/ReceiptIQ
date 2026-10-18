@@ -135,3 +135,43 @@ def _send(sg, from_email: str, to_email: str, subject: str, html: str) -> bool:
     except Exception as e:
         log.error("E-posta gönderilemedi: %s", e)
         return False
+
+
+async def send_verification_code_email(to_email: str, code: str) -> bool:
+    """Kayıt sonrası e-posta doğrulama kodunu gönder."""
+    sg, from_email = _get_sendgrid()
+    if sg is None:
+        return False
+
+    subject = "ReceiptIQ - E-posta Doğrulama Kodu"
+    html_content = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #f7f8ff; border-radius: 16px;">
+      <h2 style="color: #008080; margin-bottom: 8px;">ReceiptIQ</h2>
+      <p style="color: #1A1D1E; font-size: 16px;">E-posta adresinizi doğrulamak için aşağıdaki kodu uygulamaya girin:</p>
+      <div style="background: #fff; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0; border: 2px solid #008080;">
+        <span style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #008080;">{code}</span>
+      </div>
+      <p style="color: #6B7280; font-size: 13px;">Bu kod 15 dakika geçerlidir. Bu hesabı siz oluşturmadıysanız bu e-postayı görmezden gelebilirsiniz.</p>
+    </div>
+    """
+    return _send(sg, from_email, to_email, subject, html_content)
+
+
+async def send_password_reset_email(to_email: str, code: str) -> bool:
+    """Şifre sıfırlama kodunu gönder."""
+    sg, from_email = _get_sendgrid()
+    if sg is None:
+        return False
+
+    subject = "ReceiptIQ - Şifre Sıfırlama Kodu"
+    html_content = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #f7f8ff; border-radius: 16px;">
+        <h2 style="color: #008080; margin-bottom: 8px;">ReceiptIQ</h2>
+        <p style="color: #1A1D1E; font-size: 16px;">Şifrenizi sıfırlamak için aşağıdaki kodu kullanın:</p>
+        <div style="background: #fff; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0; border: 2px solid #008080;">
+            <span style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #008080;">{code}</span>
+        </div>
+        <p style="color: #6B7280; font-size: 13px;">Bu kod 15 dakika geçerlidir. Eğer bu isteği siz yapmadıysanız, bu e-postayı görmezden gelebilirsiniz.</p>
+    </div>
+    """
+    return _send(sg, from_email, to_email, subject, html_content)

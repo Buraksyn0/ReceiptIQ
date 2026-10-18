@@ -71,3 +71,26 @@ test('doğru bilgilerle giriş başarılı olursa login() çağrılmalı', async
     expect(loginMock).toHaveBeenCalledWith('sahte-token-123');
   });
 });
+
+test('e-posta doğrulanmamışsa (403) doğrulama ekranına yönlendirmeli, hata uyarısı gösterilmemeli', async () => {
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      ok: false,
+      status: 403,
+      json: () => Promise.resolve({ detail: 'E-posta adresiniz doğrulanmamış.' }),
+    })
+  );
+  const { navigation, getByText, getByPlaceholderText } = await renderScreen();
+
+  await fireEvent.changeText(getByPlaceholderText('Email'), 'Test@Test.com');
+  await fireEvent.changeText(getByPlaceholderText('Password'), 'sifre123');
+  await fireEvent.press(getByText('Sign In'));
+
+  await waitFor(() => {
+    expect(navigation.navigate).toHaveBeenCalledWith('VerifyEmail', {
+      email: 'test@test.com',
+      autoSend: true,
+    });
+  });
+  expect(global.alert).not.toHaveBeenCalled();
+});

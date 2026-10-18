@@ -25,7 +25,7 @@ async def test_create_receipt(client, test_user):
     assert data["category"] == "market"
 
 
-async def test_cannot_read_another_users_receipt(client, test_user):
+async def test_cannot_read_another_users_receipt(client, test_user, verify_email):
     """
     Kullanıcı A'nın fişine, Kullanıcı B'nin token'ıyla erişilmeye
     çalışılırsa 404 dönmeli — fiş "yok" gibi davranılmalı, "bu fişe
@@ -47,6 +47,7 @@ async def test_cannot_read_another_users_receipt(client, test_user):
         "/api/v1/auth/signup",
         json={"email": b_email, "password": b_password, "full_name": "Kullanici B"},
     )
+    await verify_email(b_email)
     b_login = await client.post(
         "/api/v1/auth/login",
         data={"username": b_email, "password": b_password},

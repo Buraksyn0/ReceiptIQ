@@ -60,9 +60,8 @@ function SignUpScreen({ navigation }) {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Kayıt başarılı! Şimdi giriş yapabilirsin.");
-        // Başarılıysa, adamın ismini de alarak Login ekranına uçur
-        navigation.navigate('SignIn', { name: fullName });
+        // Hesap açıldı ama e-posta doğrulanana kadar giriş yapılamaz: kod ekranına git
+        navigation.navigate('VerifyEmail', { email: email.trim().toLowerCase() });
       } else {
         // Backend'den gelen spesifik hatayı ekrana bas (Örn: "Bu email zaten kayıtlı")
         alert("Kayıt başarısız: " + (data.detail || JSON.stringify(data)));

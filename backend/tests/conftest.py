@@ -10,13 +10,14 @@ import uuid
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import text
+from sqlalchemy import text, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from app.api import deps
 from app.db.base import Base  # tüm modelleri Base.metadata'ya kaydeder
 from app.main import app
+from app.models.user import User
 
 TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/receiptiq_test"
 
@@ -45,6 +46,36 @@ async def reset_rate_limiter():
     app.state.limiter.reset()
     auth_endpoints.limiter.reset()
     yield
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def sent_verification_emails(monkeypatch):
+    """
+    Doğrulama e-postası GERÇEKTEN gönderilmesin (yerel .env'de SendGrid anahtarı
+    olabilir) — gönderilecek kodu bir listeye yazıyoruz; testler kodu buradan okur.
+    Liste elemanları: (alıcı_e-posta, kod)
+    """
+    sent: list[tuple[str, str]] = []
+
+    async def fake_send(to_email: str, code: str) -> bool:
+        sent.append((to_email, code))
+        return True
+
+    monkeypatch.setattr("app.api.endpoints.auth.send_verification_code_email", fake_send)
+    return sent
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def sent_reset_emails(monkeypatch):
+    """Şifre sıfırlama e-postası da gerçekten gönderilmesin; kodlar listeden okunur."""
+    sent: list[tuple[str, str]] = []
+
+    async def fake_send(to_email: str, code: str) -> bool:
+        sent.append((to_email, code))
+        return True
+
+    monkeypatch.setattr("app.api.endpoints.auth.send_password_reset_email", fake_send)
+    return sent
 
 
 @pytest_asyncio.fixture
@@ -81,7 +112,18 @@ async def client(db_session):
 
 
 @pytest_asyncio.fixture
-async def test_user(client):
+async def verify_email(db_session):
+    """E-posta doğrulama adımını atlatır: kullanıcıyı doğrudan DB'de 'doğrulanmış' yapar."""
+    async def _verify(email: str):
+        await db_session.execute(
+            update(User).where(User.email == email).values(email_verified=True)
+        )
+        await db_session.commit()
+    return _verify
+
+
+@pytest_asyncio.fixture
+async def test_user(client, verify_email):
     """Kayıtlı ve giriş yapmış bir test kullanıcısı + token döner."""
     email = f"test_{uuid.uuid4().hex[:8]}@test.com"
     password = "testpass123"
@@ -90,6 +132,7 @@ async def test_user(client):
         "/api/v1/auth/signup",
         json={"email": email, "password": password, "full_name": "Test User"},
     )
+    await verify_email(email)
     login_res = await client.post(
         "/api/v1/auth/login",
         data={"username": email, "password": password},

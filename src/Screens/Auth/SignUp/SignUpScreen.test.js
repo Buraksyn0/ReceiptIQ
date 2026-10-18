@@ -60,7 +60,7 @@ test('koşullar kabul edilip alanlar boş bırakılırsa uyarı gösterilmeli', 
   expect(global.fetch).not.toHaveBeenCalled();
 });
 
-test('doğru bilgilerle kayıt başarılı olursa SignIn ekranına yönlendirmeli', async () => {
+test('doğru bilgilerle kayıt başarılı olursa e-posta doğrulama ekranına yönlendirmeli', async () => {
   global.fetch = jest.fn(() =>
     Promise.resolve({
       ok: true,
@@ -77,6 +77,6 @@ test('doğru bilgilerle kayıt başarılı olursa SignIn ekranına yönlendirmel
   await fireEvent.press(getByText('Sign Up'));
 
   await waitFor(() => {
-    expect(navigation.navigate).toHaveBeenCalledWith('SignIn', { name: 'Test Kullanici' });
+    expect(navigation.navigate).toHaveBeenCalledWith('VerifyEmail', { email: 'test@test.com' });
   });
 });
