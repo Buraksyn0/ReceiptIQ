@@ -51,8 +51,10 @@ class Settings(BaseSettings):
     APPLE_BUNDLE_ID: str = "com.buraksayan.receiptiq"
 
     # === E-posta ===
-    SENDGRID_API_KEY: str | None = None
-    SENDGRID_FROM_EMAIL: str = "sayannburakks@gmail.com"
+    # Resend API anahtarı yoksa e-posta gönderimi sessizce atlanır
+    RESEND_API_KEY: str | None = None
+    # "Kimden" adresi: Resend'de doğrulanmış alan adındaki bir adres olmalı
+    EMAIL_FROM: str = "ReceiptIQ <no-reply@receiptiqapp.com>"
 
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     @classmethod

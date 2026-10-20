@@ -31,9 +31,6 @@ qdrant-client>=1.9.0
 reportlab>=4.0.0
 fpdf2>=2.7.0
 
-# === E-posta ===
-sendgrid>=6.11.0
-
 # === Zamanlayıcı ===
 apscheduler>=3.10.0
 

@@ -1,8 +1,8 @@
 """
 ReceiptIQ — E-posta Bildirim Servisi
 
-SendGrid üzerinden kullanıcıya e-posta gönderir.
-SENDGRID_API_KEY ayarlanmamışsa sessizce atlar.
+Resend (HTTP API) üzerinden kullanıcıya e-posta gönderir.
+RESEND_API_KEY ayarlanmamışsa sessizce atlar.
 
 Kullanım:
     await send_budget_exceeded_email(user_email, category_label, spent, limit)
@@ -12,20 +12,14 @@ Kullanım:
 from __future__ import annotations
 import logging
 
+import httpx
+
+from app.core.config import settings
+
 log = logging.getLogger(__name__)
 
 
-def _get_sendgrid():
-    """SendGrid client ve ayarları döner. API key yoksa None."""
-    try:
-        from app.core.config import settings
-        if not settings.SENDGRID_API_KEY:
-            return None, None
-        from sendgrid import SendGridAPIClient
-        return SendGridAPIClient(settings.SENDGRID_API_KEY), settings.SENDGRID_FROM_EMAIL
-    except Exception as e:
-        log.warning("SendGrid başlatılamadı: %s", e)
-        return None, None
+RESEND_SEND_URL = "https://api.resend.com/emails"
 
 
 async def send_budget_exceeded_email(
@@ -35,10 +29,6 @@ async def send_budget_exceeded_email(
     limit: float,
 ) -> bool:
     """Bütçe aşımı e-postası gönder."""
-    sg, from_email = _get_sendgrid()
-    if sg is None:
-        return False
-
     overflow = spent - limit
     subject = f"⚠️ Bütçe Limitini Aştınız — {category_label}"
     html_content = f"""
@@ -71,7 +61,7 @@ async def send_budget_exceeded_email(
     </div>
     """
 
-    return _send(sg, from_email, to_email, subject, html_content)
+    return await _send(to_email, subject, html_content)
 
 
 async def send_anomaly_email(
@@ -81,10 +71,6 @@ async def send_anomaly_email(
     date_str: str,
 ) -> bool:
     """Anormal harcama e-postası gönder."""
-    sg, from_email = _get_sendgrid()
-    if sg is None:
-        return False
-
     subject = "🚨 Anormal Harcama Tespit Edildi"
     html_content = f"""
     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px;">
@@ -116,21 +102,39 @@ async def send_anomaly_email(
     </div>
     """
 
-    return _send(sg, from_email, to_email, subject, html_content)
+    return await _send(to_email, subject, html_content)
 
 
-def _send(sg, from_email: str, to_email: str, subject: str, html: str) -> bool:
-    """SendGrid üzerinden e-posta gönder."""
+async def _send(to_email: str, subject: str, html: str) -> bool:
+    """
+    Resend API üzerinden e-posta gönderir. API anahtarı yoksa sessizce False döner.
+    Başarıda Resend, HTTP 200 ve {"id": "..."} döner; hata varsa 4xx/5xx.
+    """
+    if not settings.RESEND_API_KEY:
+        return False
+
+    payload = {
+        "from": settings.EMAIL_FROM,
+        "to": [to_email],
+        "subject": subject,
+        "html": html,
+    }
     try:
-        from sendgrid.helpers.mail import Mail
-        message = Mail(
-            from_email=from_email,
-            to_emails=to_email,
-            subject=subject,
-            html_content=html,
-        )
-        response = sg.send(message)
-        log.info("E-posta gönderildi: %s → %s (status=%s)", subject, to_email, response.status_code)
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.post(
+                RESEND_SEND_URL,
+                json=payload,
+                headers={"Authorization": f"Bearer {settings.RESEND_API_KEY}"},
+            )
+        body = resp.json()
+        if resp.status_code != 200 or not body.get("id"):
+            log.error(
+                "E-posta gönderilemedi: HTTP %s %s",
+                resp.status_code,
+                body.get("message") or body.get("name"),
+            )
+            return False
+        log.info("E-posta gönderildi: %s → %s", subject, to_email)
         return True
     except Exception as e:
         log.error("E-posta gönderilemedi: %s", e)
@@ -139,10 +143,6 @@ def _send(sg, from_email: str, to_email: str, subject: str, html: str) -> bool:
 
 async def send_verification_code_email(to_email: str, code: str) -> bool:
     """Kayıt sonrası e-posta doğrulama kodunu gönder."""
-    sg, from_email = _get_sendgrid()
-    if sg is None:
-        return False
-
     subject = "ReceiptIQ - E-posta Doğrulama Kodu"
     html_content = f"""
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #f7f8ff; border-radius: 16px;">
@@ -154,15 +154,11 @@ async def send_verification_code_email(to_email: str, code: str) -> bool:
       <p style="color: #6B7280; font-size: 13px;">Bu kod 15 dakika geçerlidir. Bu hesabı siz oluşturmadıysanız bu e-postayı görmezden gelebilirsiniz.</p>
     </div>
     """
-    return _send(sg, from_email, to_email, subject, html_content)
+    return await _send(to_email, subject, html_content)
 
 
 async def send_password_reset_email(to_email: str, code: str) -> bool:
     """Şifre sıfırlama kodunu gönder."""
-    sg, from_email = _get_sendgrid()
-    if sg is None:
-        return False
-
     subject = "ReceiptIQ - Şifre Sıfırlama Kodu"
     html_content = f"""
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #f7f8ff; border-radius: 16px;">
@@ -174,4 +170,4 @@ async def send_password_reset_email(to_email: str, code: str) -> bool:
         <p style="color: #6B7280; font-size: 13px;">Bu kod 15 dakika geçerlidir. Eğer bu isteği siz yapmadıysanız, bu e-postayı görmezden gelebilirsiniz.</p>
     </div>
     """
-    return _send(sg, from_email, to_email, subject, html_content)
+    return await _send(to_email, subject, html_content)

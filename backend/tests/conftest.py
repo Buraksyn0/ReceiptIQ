@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from app.api import deps
+from app.core.config import settings
 from app.db.base import Base  # tüm modelleri Base.metadata'ya kaydeder
 from app.main import app
 from app.models.user import User
@@ -46,6 +47,16 @@ async def reset_rate_limiter():
     app.state.limiter.reset()
     auth_endpoints.limiter.reset()
     yield
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def no_real_emails(monkeypatch):
+    """
+    Yerel .env'de gerçek bir Resend anahtarı olsa bile testler hiçbir zaman
+    gerçek e-posta göndermesin. (test_email_service.py anahtarı kendi içinde
+    yeniden verip sahte HTTP istemcisiyle sınıyor.)
+    """
+    monkeypatch.setattr(settings, "RESEND_API_KEY", None)
 
 
 @pytest_asyncio.fixture(autouse=True)
