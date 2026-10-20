@@ -39,6 +39,8 @@ function AppleSignInButton() {
         body: JSON.stringify({
           identity_token: credential.identityToken,
           full_name: fullName || null,
+          // Hesap silinirken Apple erişimini iptal edebilmek için (App Store kuralı)
+          authorization_code: credential.authorizationCode || null,
         }),
       });
       const data = await response.json();

@@ -63,6 +63,8 @@ class AppleLoginRequest(BaseModel):
     identity_token: str
     # Apple adı yalnızca ilk girişte telefona verir, token'ın içinde yoktur
     full_name: str | None = None
+    # Tek kullanımlık yetki kodu: hesap silinirken Apple erişimini iptal edebilmek için
+    authorization_code: str | None = None
 
 
 @router.post("/apple", response_model=Token)
@@ -132,6 +134,14 @@ async def apple_login(
 
         await db.commit()
         await db.refresh(user)
+
+    # Hesap silinirken Apple erişimini iptal edebilmek için refresh token'ı sakla.
+    # Başarısız olursa giriş yine de çalışır (iptal "en iyi çaba" ile yapılır).
+    if body.authorization_code:
+        refresh_token = await apple_auth.exchange_authorization_code(body.authorization_code)
+        if refresh_token:
+            user.apple_refresh_token = refresh_token
+            await db.commit()
 
     access_token = security.create_access_token(
         user.id, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

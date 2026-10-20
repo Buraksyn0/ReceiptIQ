@@ -49,6 +49,12 @@ class Settings(BaseSettings):
     # Apple token'ının "aud" (hedef kitle) değeri: iOS uygulamasının bundle ID'si.
     # Expo Go ile denemek için lokalde APPLE_BUNDLE_ID=host.exp.Exponent verilir.
     APPLE_BUNDLE_ID: str = "com.buraksayan.receiptiq"
+    # Hesap silinirken Apple token'ını iptal etmek (Guideline 5.1.1(v)) için gerekli.
+    # Üçü de tanımlı değilse iptal adımı atlanır (giriş yine çalışır).
+    APPLE_TEAM_ID: str | None = None
+    APPLE_KEY_ID: str | None = None
+    # AuthKey_XXXX.p8 dosyasının tam içeriği (PEM). Railway'e `--stdin` ile verilir.
+    APPLE_PRIVATE_KEY: str | None = None
 
     # === E-posta ===
     # Resend API anahtarı yoksa e-posta gönderimi sessizce atlanır

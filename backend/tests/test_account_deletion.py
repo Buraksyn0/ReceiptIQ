@@ -43,3 +43,69 @@ async def test_delete_account_cascades_receipts(client, db_session, test_user):
     # Fiş de cascade ile silinmiş mi
     receipt_result = await db_session.execute(select(Receipt).where(Receipt.user_id == user_id))
     assert receipt_result.scalars().first() is None
+
+
+async def _set_refresh_token(db_session, token_value):
+    from sqlalchemy import update
+    await db_session.execute(update(User).values(apple_refresh_token=token_value))
+    await db_session.commit()
+
+
+async def test_delete_account_revokes_apple_token(client, db_session, test_user, monkeypatch):
+    """Apple ile giriş yapmış kullanıcı hesabını silince Apple erişimi iptal edilmeli."""
+    from app.services import apple_auth
+
+    await _set_refresh_token(db_session, "refresh-xyz")
+    revoked = []
+
+    async def fake_revoke(token):
+        revoked.append(token)
+        return True
+
+    monkeypatch.setattr(apple_auth, "revoke_refresh_token", fake_revoke)
+
+    res = await client.delete(
+        "/api/v1/users/me", headers={"Authorization": f"Bearer {test_user['token']}"}
+    )
+    assert res.status_code == 204
+    assert revoked == ["refresh-xyz"]
+
+
+async def test_delete_account_succeeds_even_if_apple_revocation_fails(
+    client, db_session, test_user, monkeypatch
+):
+    """Apple'a ulaşılamasa bile kullanıcının hesabını silme hakkı engellenmemeli."""
+    from app.services import apple_auth
+
+    await _set_refresh_token(db_session, "refresh-xyz")
+
+    async def failing_revoke(token):
+        return False
+
+    monkeypatch.setattr(apple_auth, "revoke_refresh_token", failing_revoke)
+
+    res = await client.delete(
+        "/api/v1/users/me", headers={"Authorization": f"Bearer {test_user['token']}"}
+    )
+    assert res.status_code == 204
+    assert (await db_session.execute(select(User))).scalars().first() is None
+
+
+async def test_delete_account_without_apple_token_does_not_call_apple(
+    client, test_user, monkeypatch
+):
+    from app.services import apple_auth
+
+    called = []
+
+    async def fake_revoke(token):
+        called.append(token)
+        return True
+
+    monkeypatch.setattr(apple_auth, "revoke_refresh_token", fake_revoke)
+
+    res = await client.delete(
+        "/api/v1/users/me", headers={"Authorization": f"Bearer {test_user['token']}"}
+    )
+    assert res.status_code == 204
+    assert called == []

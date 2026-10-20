@@ -211,3 +211,61 @@ async def test_unknown_key_id_is_rejected(client):
 async def test_garbage_token_is_rejected(client):
     res = await _apple_login(client, "bu-bir-jwt-degil")
     assert res.status_code == 401
+
+
+async def test_login_with_authorization_code_stores_refresh_token(client, db_session, monkeypatch):
+    """Girişte yetki kodu gelirse refresh token Apple'dan alınıp kullanıcıya kaydedilmeli."""
+    from sqlalchemy import select
+    from app.models.user import User
+
+    received = []
+
+    async def fake_exchange(code):
+        received.append(code)
+        return "refresh-abc"
+
+    monkeypatch.setattr(apple_auth, "exchange_authorization_code", fake_exchange)
+
+    res = await client.post(
+        "/api/v1/auth/apple",
+        json={"identity_token": make_token(sub="apple-rev-001"), "authorization_code": "kod-1"},
+    )
+    assert res.status_code == 200
+    assert received == ["kod-1"]
+
+    user = (await db_session.execute(select(User).where(User.apple_sub == "apple-rev-001"))).scalars().first()
+    assert user.apple_refresh_token == "refresh-abc"
+
+
+async def test_login_still_works_when_code_exchange_fails(client, db_session, monkeypatch):
+    """Apple yetki kodunu reddederse giriş yine de başarılı olmalı (iptal 'en iyi çaba')."""
+    from sqlalchemy import select
+    from app.models.user import User
+
+    async def failing_exchange(code):
+        return None
+
+    monkeypatch.setattr(apple_auth, "exchange_authorization_code", failing_exchange)
+
+    res = await client.post(
+        "/api/v1/auth/apple",
+        json={"identity_token": make_token(sub="apple-rev-002"), "authorization_code": "kod-2"},
+    )
+    assert res.status_code == 200
+
+    user = (await db_session.execute(select(User).where(User.apple_sub == "apple-rev-002"))).scalars().first()
+    assert user.apple_refresh_token is None
+
+
+async def test_login_without_authorization_code_does_not_call_apple(client, monkeypatch):
+    called = []
+
+    async def fake_exchange(code):
+        called.append(code)
+        return "x"
+
+    monkeypatch.setattr(apple_auth, "exchange_authorization_code", fake_exchange)
+
+    res = await _apple_login(client, make_token(sub="apple-rev-003"))
+    assert res.status_code == 200
+    assert called == []

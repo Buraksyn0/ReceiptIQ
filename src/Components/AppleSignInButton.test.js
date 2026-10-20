@@ -72,6 +72,7 @@ test('Android\'de buton görünmemeli ve Apple\'a sorulmamalı', async () => {
 test('başarılı girişte token backend\'e gönderilmeli ve login çağrılmalı', async () => {
   AppleAuthentication.signInAsync.mockResolvedValue({
     identityToken: 'apple-jwt',
+    authorizationCode: 'apple-code',
     fullName: { givenName: 'Burak', familyName: 'Sayan' },
   });
   global.fetch = jest.fn().mockResolvedValue({
@@ -89,6 +90,7 @@ test('başarılı girişte token backend\'e gönderilmeli ve login çağrılmal�
   expect(JSON.parse(options.body)).toEqual({
     identity_token: 'apple-jwt',
     full_name: 'Burak Sayan',
+    authorization_code: 'apple-code',
   });
 });
 
@@ -136,4 +138,21 @@ test('backend girişi reddederse hata mesajı gösterilmeli, login çağrılmama
     expect(global.alert).toHaveBeenCalledWith(expect.stringContaining('Apple girişi doğrulanamadı.'))
   );
   expect(login).not.toHaveBeenCalled();
+});
+
+test('Apple yetki kodu vermezse authorization_code null gitmeli', async () => {
+  AppleAuthentication.signInAsync.mockResolvedValue({
+    identityToken: 'apple-jwt',
+    fullName: null,
+  });
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ access_token: 'our-jwt' }),
+  });
+
+  const { findByTestId } = await renderButton();
+  await fireEvent.press(await findByTestId('apple-sign-in-button'));
+
+  await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+  expect(JSON.parse(global.fetch.mock.calls[0][1].body).authorization_code).toBeNull();
 });

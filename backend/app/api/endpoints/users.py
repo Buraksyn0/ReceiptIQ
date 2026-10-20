@@ -1,3 +1,4 @@
+import logging
 import os
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
@@ -11,6 +12,9 @@ from app.models.user import User
 from app.models.receipt import Receipt
 from app.models.budget import Budget
 from app.schemas.user import User as UserSchema, UserUpdate
+from app.services import apple_auth
+
+log = logging.getLogger(__name__)
 
 AVATARS_DIR = os.path.join(os.path.dirname(__file__), "../../../../avatars")
 os.makedirs(AVATARS_DIR, exist_ok=True)
@@ -92,9 +96,14 @@ async def delete_user_me(
     current_user: User = Depends(deps.get_current_user),
 ) -> None:
     """
-    Hesap silme. Önce kullanıcının fişleri ve bütçeleri silinir,
-    sonra kullanıcı kaydı silinir.
+    Hesap silme. Apple ile giriş yapan kullanıcının Apple erişimi iptal edilir
+    (App Store Guideline 5.1.1(v)), sonra fişleri ve bütçeleri, en son kullanıcı kaydı silinir.
     """
+    if current_user.apple_refresh_token:
+        revoked = await apple_auth.revoke_refresh_token(current_user.apple_refresh_token)
+        if not revoked:
+            # Kullanıcının silme hakkını Apple'a ulaşılamadı diye engellemeyiz; log'a düşeriz
+            log.error("Apple token iptal edilemedi (kullanıcı %s), hesap yine de siliniyor", current_user.id)
     await db.execute(delete(Receipt).where(Receipt.user_id == current_user.id))
     await db.execute(delete(Budget).where(Budget.user_id == current_user.id))
     await db.delete(current_user)
