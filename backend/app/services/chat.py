@@ -20,6 +20,17 @@ from sqlalchemy import select, func
 
 log = logging.getLogger(__name__)
 
+# Asistanlar kullanıcının KENDİ harcama verilerini analiz eder; kişiye özel yatırım,
+# kredi, vergi veya sigorta tavsiyesi vermez. Genel bütçe/tasarruf önerileri serbesttir.
+FINANCE_BOUNDARY = """
+
+Sınır (önemli):
+- Belirli bir yatırım aracı (hisse, kripto, altın, döviz, fon), kredi, vergi veya sigorta ürünü için "şunu al/sat/çek/yaptır" gibi kişiye özel tavsiye veya yönlendirme YAPMA.
+- Bu tür sorularda kısa ve nazik ol: bunun bir yatırım/finansal danışmanlık hizmeti olmadığını, bu konuda lisanslı bir uzmana danışması gerektiğini söyle; ardından harcama, bütçe veya tasarruf verileri üzerinden yardımcı olabileceğini belirt.
+- Harcama alışkanlıkları, bütçe, tasarruf ve fiş verileri hakkında somut, uygulanabilir öneriler vermeye aynen devam et.
+- Genel kavramları (enflasyon, bütçe, birikim gibi) kısaca ve tarafsız açıklayabilirsin; belirli bir ürün önermeden.
+"""
+
 SYSTEM_PROMPT = """Sen ReceiptIQ'nun akıllı kişisel finans asistanısın.
 Kullanıcının fiş ve işlem verilerini analiz ederek sorularını yanıtlarsın.
 Aynı zamanda samimi ve yardımsever bir asistansın; selamlaşma ve genel sohbete de doğal şekilde katılırsın.
@@ -36,7 +47,7 @@ Kurallar:
 - Kategori adları Türkçe göster (food→Gıda, transport→Ulaşım vb.)
 - Az veri olsa bile (1-2 fiş) elindeki veriyi kullanarak somut bir yanıt ver; sadece HİÇ veri yoksa "Bu konuda henüz yeterli veri bulunamadı." de
 - Kullanıcıya bütçesini aşıyorsa veya fazla harcıyorsa nazikçe uyar
-"""
+""" + FINANCE_BOUNDARY
 
 OPENING_INSIGHT_PROMPT = """Sen ReceiptIQ'nun finans asistanısın. Kullanıcı sohbet ekranını yeni açtı, henüz bir şey sormadı.
 Aşağıdaki gerçek verilerine bakarak, kullanıcıyı sohbete davet eden, TEK CÜMLELİK, sıcak ve spesifik bir açılış mesajı yaz.
@@ -340,7 +351,7 @@ Kurallar:
 - Pratik ve uygulanabilir tavsiyeler ver
 - Kullanıcıyı hedefe ulaşması için teşvik et
 - Veri yoksa "Bu konuda henüz yeterli veri bulunamadı." de
-"""
+""" + FINANCE_BOUNDARY
 
 
 async def _build_savings_context(db: AsyncSession, user_id: uuid.UUID) -> str:
@@ -432,7 +443,7 @@ Kurallar:
 - Kullanıcıyı olumsuz yargılama, yapıcı ol
 - Finansal terminolojiyi basit Türkçeyle açıkla
 - Veri yoksa "Bu konuda henüz yeterli veri bulunamadı." de
-"""
+""" + FINANCE_BOUNDARY
 
 
 async def _build_financial_score_context(db: AsyncSession, user_id: uuid.UUID) -> str:
