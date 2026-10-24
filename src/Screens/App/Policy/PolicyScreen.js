@@ -13,7 +13,7 @@ const PRIVACY_CONTENT = {
     sections: [
       {
         heading: '1. Veri Sorumlusu Kimliği',
-        body: '6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verileriniz veri sorumlusu sıfatıyla Burak Sayan tarafından işlenmektedir. İletişim: receiptiq.destek@gmail.com',
+        body: '6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verileriniz veri sorumlusu sıfatıyla Burak Sayan tarafından işlenmektedir. İletişim: destek@receiptiqapp.com',
       },
       {
         heading: '2. Toplanan Veriler',
@@ -41,7 +41,7 @@ const PRIVACY_CONTENT = {
       },
       {
         heading: '8. İletişim',
-        body: 'Gizlilik politikamıza ilişkin sorularınız için: receiptiq.destek@gmail.com',
+        body: 'Gizlilik politikamıza ilişkin sorularınız için: destek@receiptiqapp.com',
       },
     ],
   },
@@ -71,7 +71,7 @@ const PRIVACY_CONTENT = {
       },
       {
         heading: '6. Contact',
-        body: 'For questions about our privacy policy: receiptiq.destek@gmail.com',
+        body: 'For questions about our privacy policy: destek@receiptiqapp.com',
       },
     ],
   },
@@ -101,7 +101,7 @@ const PRIVACY_CONTENT = {
       },
       {
         heading: '6. Kontakt',
-        body: 'Bei Fragen zu unserer Datenschutzrichtlinie: receiptiq.destek@gmail.com',
+        body: 'Bei Fragen zu unserer Datenschutzrichtlinie: destek@receiptiqapp.com',
       },
     ],
   },
@@ -131,7 +131,7 @@ const PRIVACY_CONTENT = {
       },
       {
         heading: '6. Contact',
-        body: 'Pour toute question sur notre politique de confidentialité : receiptiq.destek@gmail.com',
+        body: 'Pour toute question sur notre politique de confidentialité : destek@receiptiqapp.com',
       },
     ],
   },
@@ -161,7 +161,7 @@ const PRIVACY_CONTENT = {
       },
       {
         heading: '6. Контакты',
-        body: 'По вопросам политики конфиденциальности: receiptiq.destek@gmail.com',
+        body: 'По вопросам политики конфиденциальности: destek@receiptiqapp.com',
       },
     ],
   },
@@ -194,7 +194,7 @@ const TERMS_CONTENT = {
       },
       {
         heading: '6. İletişim',
-        body: 'Kullanım koşullarına ilişkin sorularınız için: receiptiq.destek@gmail.com',
+        body: 'Kullanım koşullarına ilişkin sorularınız için: destek@receiptiqapp.com',
       },
     ],
   },
@@ -224,7 +224,7 @@ const TERMS_CONTENT = {
       },
       {
         heading: '6. Contact',
-        body: 'For questions about our terms of service: receiptiq.destek@gmail.com',
+        body: 'For questions about our terms of service: destek@receiptiqapp.com',
       },
     ],
   },
@@ -254,7 +254,7 @@ const TERMS_CONTENT = {
       },
       {
         heading: '6. Kontakt',
-        body: 'Bei Fragen zu unseren Nutzungsbedingungen: receiptiq.destek@gmail.com',
+        body: 'Bei Fragen zu unseren Nutzungsbedingungen: destek@receiptiqapp.com',
       },
     ],
   },
@@ -284,7 +284,7 @@ const TERMS_CONTENT = {
       },
       {
         heading: '6. Contact',
-        body: 'Pour toute question sur nos conditions d\'utilisation : receiptiq.destek@gmail.com',
+        body: 'Pour toute question sur nos conditions d\'utilisation : destek@receiptiqapp.com',
       },
     ],
   },
@@ -314,7 +314,7 @@ const TERMS_CONTENT = {
       },
       {
         heading: '6. Контакты',
-        body: 'По вопросам об условиях использования: receiptiq.destek@gmail.com',
+        body: 'По вопросам об условиях использования: destek@receiptiqapp.com',
       },
     ],
   },
@@ -370,7 +370,7 @@ function PolicyScreen({ navigation, route }) {
           backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border,
         }}>
           <Text style={{ fontSize: ms(12), color: colors.textSecondary, textAlign: 'center', lineHeight: vs(18) }}>
-            ReceiptIQ © 2026 — receiptiq.destek@gmail.com
+            ReceiptIQ © 2026 — destek@receiptiqapp.com
           </Text>
         </View>
       </ScrollView>
