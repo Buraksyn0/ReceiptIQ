@@ -12,7 +12,7 @@ from app.models.user import User
 from app.models.receipt import Receipt
 from app.models.budget import Budget
 from app.schemas.user import User as UserSchema, UserUpdate
-from app.services import apple_auth
+from app.services import apple_auth, data_cleanup
 
 log = logging.getLogger(__name__)
 
@@ -20,6 +20,13 @@ AVATARS_DIR = os.path.join(os.path.dirname(__file__), "../../../../avatars")
 os.makedirs(AVATARS_DIR, exist_ok=True)
 
 router = APIRouter()
+
+
+def _avatar_path(avatar_url: str | None) -> str | None:
+    """Veritabanındaki avatar_url'den diskteki dosya yolunu çıkarır (yoksa None)."""
+    if not avatar_url:
+        return None
+    return os.path.join(AVATARS_DIR, os.path.basename(avatar_url))
 
 
 @router.get("/me", response_model=UserSchema)
@@ -97,13 +104,16 @@ async def delete_user_me(
 ) -> None:
     """
     Hesap silme. Apple ile giriş yapan kullanıcının Apple erişimi iptal edilir
-    (App Store Guideline 5.1.1(v)), sonra fişleri ve bütçeleri, en son kullanıcı kaydı silinir.
+    (App Store Guideline 5.1.1(v)); fiş vektörleri, yüklenmiş dosyalar ve profil
+    fotoğrafı silinir; sonra fişler, bütçeler ve en son kullanıcı kaydı silinir.
     """
     if current_user.apple_refresh_token:
         revoked = await apple_auth.revoke_refresh_token(current_user.apple_refresh_token)
         if not revoked:
             # Kullanıcının silme hakkını Apple'a ulaşılamadı diye engellemeyiz; log'a düşeriz
             log.error("Apple token iptal edilemedi (kullanıcı %s), hesap yine de siliniyor", current_user.id)
+    # Dış kaynaklar (Qdrant vektörleri, diskteki dosyalar, profil fotoğrafı) veritabanından ÖNCE silinir
+    await data_cleanup.purge_user_data(current_user.id, _avatar_path(current_user.avatar_url))
     await db.execute(delete(Receipt).where(Receipt.user_id == current_user.id))
     await db.execute(delete(Budget).where(Budget.user_id == current_user.id))
     await db.delete(current_user)

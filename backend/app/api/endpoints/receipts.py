@@ -16,6 +16,7 @@ from app.models.user import User
 from app.models.receipt import Receipt
 from app.models.uploaded_file import UploadedFile
 from app.models.category_feedback import CategoryFeedback
+from app.services import data_cleanup
 from app.schemas.receipt import (
     Receipt as ReceiptSchema,
     ReceiptCreate,
@@ -359,6 +360,8 @@ async def delete_receipt(
 ):
     """Fiş sil (yalnız sahibi)."""
     receipt = await _get_owned_receipt(receipt_id, db, current_user)
+    # Vektör ve bağlı dosya da silinsin (aksi halde silinen fiş sohbet aramasında çıkabilir)
+    await data_cleanup.purge_receipt_artifacts(db, current_user.id, [receipt.id])
     await db.delete(receipt)
     await db.commit()
     return None
@@ -369,7 +372,11 @@ async def delete_all_receipts(
     db: AsyncSession = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
 ):
-    """Kullanıcının tüm fişlerini sil."""
+    """Kullanıcının tüm fişlerini sil (vektörler ve bağlı dosyalar dahil)."""
+    ids = (
+        await db.execute(select(Receipt.id).where(Receipt.user_id == current_user.id))
+    ).scalars().all()
+    await data_cleanup.purge_receipt_artifacts(db, current_user.id, list(ids))
     await db.execute(
         delete(Receipt).where(Receipt.user_id == current_user.id)
     )

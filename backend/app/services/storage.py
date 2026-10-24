@@ -143,3 +143,23 @@ def delete_file(storage_path: str) -> None:
         os.remove(storage_path)
     except FileNotFoundError:
         pass
+
+
+def delete_user_dir(user_id) -> bool:
+    """
+    Kullanıcının tüm yüklenmiş dosyalarını (STORAGE_DIR/{user_id}/) siler.
+    Klasör yoksa True döner. Yol STORAGE_DIR dışına çıkarsa hiçbir şey silmez (False).
+    """
+    import shutil
+
+    base = Path(settings.STORAGE_DIR).resolve()
+    target = (base / str(user_id)).resolve()
+    if target == base or base not in target.parents:
+        return False
+    try:
+        shutil.rmtree(target, ignore_errors=False)
+    except FileNotFoundError:
+        pass
+    except OSError:
+        return False
+    return True

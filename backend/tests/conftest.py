@@ -60,6 +60,17 @@ async def no_real_emails(monkeypatch):
 
 
 @pytest_asyncio.fixture(autouse=True)
+async def no_real_qdrant(monkeypatch):
+    """
+    Testler hiçbir zaman gerçek Qdrant'a (vektör veritabanı) bağlanmasın: yerel .env'de
+    QDRANT_URL olsa bile istemci yok sayılır. Vektör davranışını sınayan testler kendi
+    sahte istemcisini ya da fonksiyonlarını verir.
+    """
+    from app.services import vector_store
+    monkeypatch.setattr(vector_store, "_get_client", lambda: None)
+
+
+@pytest_asyncio.fixture(autouse=True)
 async def sent_verification_emails(monkeypatch):
     """
     Doğrulama e-postası GERÇEKTEN gönderilmesin (yerel .env'de SendGrid anahtarı

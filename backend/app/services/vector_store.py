@@ -155,6 +155,51 @@ def search_receipts(
         return []
 
 
+def delete_receipts(receipt_ids: list[uuid.UUID]) -> bool:
+    """Birden fazla fişi vektör veritabanından sil. Liste boşsa bir şey yapmaz (True)."""
+    from qdrant_client.models import PointIdsList
+
+    if not receipt_ids:
+        return True
+
+    client = _get_client()
+    if client is None:
+        return False
+
+    try:
+        client.delete(
+            collection_name=COLLECTION_NAME,
+            points_selector=PointIdsList(points=[str(r) for r in receipt_ids]),
+        )
+        return True
+    except Exception as e:
+        log.error("Qdrant toplu silme hatası: %s", e)
+        return False
+
+
+def delete_user_receipts(user_id: uuid.UUID) -> bool:
+    """Bir kullanıcıya ait TÜM fiş vektörlerini sil (hesap silme için)."""
+    from qdrant_client.models import Filter, FieldCondition, FilterSelector, MatchValue
+
+    client = _get_client()
+    if client is None:
+        return False
+
+    try:
+        client.delete(
+            collection_name=COLLECTION_NAME,
+            points_selector=FilterSelector(
+                filter=Filter(
+                    must=[FieldCondition(key="user_id", match=MatchValue(value=str(user_id)))]
+                )
+            ),
+        )
+        return True
+    except Exception as e:
+        log.error("Qdrant kullanıcı silme hatası: %s", e)
+        return False
+
+
 def delete_receipt(receipt_id: uuid.UUID) -> bool:
     """Fişi vektör veritabanından sil."""
     from qdrant_client.models import PointIdsList
