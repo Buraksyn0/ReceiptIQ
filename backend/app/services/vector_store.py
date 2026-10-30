@@ -41,8 +41,14 @@ def _get_client():
 
 
 def _ensure_collection(client) -> None:
-    """Koleksiyon yoksa oluştur."""
-    from qdrant_client.models import Distance, VectorParams
+    """
+    Koleksiyon yoksa oluştur, ve `user_id` için payload indeksi olduğundan emin ol.
+
+    İndeks neden şart: Yeni Qdrant sürümleri (1.20+) indekslenmemiş bir alana göre
+    filtrelemeyi reddediyor ("Index required but not found"). Aramada ve silmede
+    `user_id` filtresi kullandığımız için bu indeks olmadan ikisi de 400 hatası verir.
+    """
+    from qdrant_client.models import Distance, PayloadSchemaType, VectorParams
 
     existing = [c.name for c in client.get_collections().collections]
     if COLLECTION_NAME not in existing:
@@ -51,6 +57,16 @@ def _ensure_collection(client) -> None:
             vectors_config=VectorParams(size=VECTOR_DIM, distance=Distance.COSINE),
         )
         log.info("Qdrant koleksiyonu oluşturuldu: %s", COLLECTION_NAME)
+
+    try:
+        # Zaten varsa Qdrant bunu sorunsuz kabul eder (idempotent)
+        client.create_payload_index(
+            collection_name=COLLECTION_NAME,
+            field_name="user_id",
+            field_schema=PayloadSchemaType.KEYWORD,
+        )
+    except Exception as e:
+        log.warning("Qdrant user_id indeksi oluşturulamadı (filtreler hata verebilir): %s", e)
 
 
 def index_receipt(
